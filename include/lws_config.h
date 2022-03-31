@@ -1,7 +1,7 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -21,13 +21,13 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
- 
+
 /* lws_config.h  Generated from lws_config.h.in  */
 
 #ifndef NDEBUG
-    #ifndef _DEBUG
-        #define _DEBUG
-    #endif
+	#ifndef _DEBUG
+		#define _DEBUG
+	#endif
 #endif
 
 #define LWS_INSTALL_DATADIR "/usr/local/share"
@@ -43,7 +43,7 @@
 /* #undef LWS_LIBRARY_VERSION_NUMBER */
 
 /* #undef LWS_AVOID_SIGPIPE_IGN */
-/* #undef LWS_BUILD_HASH */
+#define LWS_BUILD_HASH "b0f8105c"
 /* #undef LWS_BUILTIN_GETIFADDRS */
 #define LWS_CLIENT_HTTP_PROXYING
 /* #undef LWS_DETECTED_PLAT_IOS */
@@ -53,13 +53,10 @@
 /* #undef LWS_HAVE__ATOI64 */
 #define LWS_HAVE_ATOLL
 #define LWS_HAVE_BN_bn2binpad
-/* #undef LWS_HAVE_BN_bn2binpad */
 #define LWS_HAVE_CLOCK_GETTIME
-/* #undef LWS_HAVE_EC_POINT_get_affine_coordinates */
+#define LWS_HAVE_EC_POINT_get_affine_coordinates
 #define LWS_HAVE_ECDSA_SIG_set0
 #define LWS_HAVE_EVP_MD_CTX_free
-/* #undef LWS_HAVE_ECDSA_SIG_set0 */
-/* #undef LWS_HAVE_EVP_MD_CTX_free */
 #define LWS_HAVE_EVP_aes_128_wrap
 #define LWS_HAVE_EVP_aes_128_cfb8
 #define LWS_HAVE_EVP_aes_128_cfb128
@@ -71,7 +68,6 @@
 #define LWS_HAVE_EXECVPE
 /* #undef LWS_HAVE_LIBCAP */
 #define LWS_HAVE_HMAC_CTX_new
-/* #undef LWS_HAVE_HMAC_CTX_new */
 #define LWS_HAVE_MALLOC_H
 #define LWS_HAVE_MALLOC_TRIM
 #define LWS_HAVE_MALLOC_USABLE_SIZE
@@ -82,31 +78,30 @@
 /* #undef LWS_HAVE_mbedtls_ssl_set_hs_ca_chain */
 /* #undef LWS_HAVE_mbedtls_ssl_set_hs_own_cert */
 /* #undef LWS_HAVE_mbedtls_ssl_set_hs_authmode */
-/* #undef LWS_HAVE_MBEDTLS_NET_SOCKETS */
+#define LWS_HAVE_MBEDTLS_NET_SOCKETS
 /* #undef LWS_HAVE_NEW_UV_VERSION_H */
 #define LWS_HAVE_OPENSSL_ECDH_H
 #define LWS_HAVE_PIPE2
 #define LWS_HAVE_EVENTFD
 #define LWS_HAVE_PTHREAD_H
 #define LWS_HAVE_RSA_SET0_KEY
-/* #undef LWS_HAVE_RSA_SET0_KEY */
 /* #undef LWS_HAVE_RSA_verify_pss_mgf1 */
 #define LWS_HAVE_SSL_CTX_get0_certificate
 #define LWS_HAVE_SSL_CTX_set1_param
-/* #undef LWS_HAVE_SSL_CTX_set_ciphersuites */
+#define LWS_HAVE_SSL_CTX_set_ciphersuites
 #define LWS_HAVE_SSL_EXTRA_CHAIN_CERTS
 #define LWS_HAVE_SSL_get0_alpn_selected
-/* #undef LWS_HAVE_SSL_CTX_EVP_PKEY_new_raw_private_key */
+#define LWS_HAVE_SSL_CTX_EVP_PKEY_new_raw_private_key
 #define LWS_HAVE_SSL_set_alpn_protos
 #define LWS_HAVE_SSL_SET_INFO_CALLBACK
 /* #undef LWS_HAVE__STAT32I64 */
 #define LWS_HAVE_STDINT_H
 /* #undef LWS_HAVE_SYS_CAPABILITY_H */
-/* #undef LWS_HAVE_TLS_CLIENT_METHOD */
 #define LWS_HAVE_TLS_CLIENT_METHOD
+#define LWS_HAVE_TLSV1_2_CLIENT_METHOD
 /* #undef LWS_HAVE_UV_VERSION_H */
 #define LWS_HAVE_VFORK
-/* #undef LWS_HAVE_X509_get_key_usage */
+#define LWS_HAVE_X509_get_key_usage
 #define LWS_HAVE_X509_VERIFY_PARAM_set1_host
 #define LWS_LIBRARY_VERSION "4.0.20"
 #define LWS_LOGGING_BITFIELD_CLEAR 0
@@ -139,7 +134,6 @@
 /* #undef LWS_WITH_BORINGSSL */
 /* #undef LWS_WITH_CGI */
 #define LWS_WITH_CUSTOM_HEADERS
-#define LWS_WITH_DEPRECATED_LWS_DLL
 /* #undef LWS_WITH_DEPRECATED_LWS_DLL */
 /* #undef LWS_WITH_DETAILED_LATENCY */
 #define LWS_WITH_DIR
@@ -187,7 +181,6 @@
 /* #undef LWS_WITH_SELFTESTS */
 #define LWS_WITH_SEQUENCER
 /* #undef LWS_WITH_SERVER_STATUS */
-#define LWS_WITH_SMTP
 /* #undef LWS_WITH_SMTP */
 /* #undef LWS_WITH_SOCKS5 */
 /* #undef LWS_WITH_STATEFUL_URLDECODE */
