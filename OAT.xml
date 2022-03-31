@@ -47,8 +47,30 @@
 
 <configuration>
     <oatconfig>
+        <licensematcherlist>
+            <licensematcher name="zlib-acknowledgement" desc="">
+                <licensetext name="For conditions of distribution and use, see copyright notice in zlib.h" desc=""/>
+            </licensematcher>
+            <licensematcher name="CC0 1.0" desc="">
+                <licensetext name="This file is made available under the Creative Commons CC0 1.0" desc=""/>
+            </licensematcher>
+            <licensematcher name="MIT" desc="">
+                <licensetext name="Licensed under MIT" desc=""/>
+            </licensematcher>
+            <licensematcher name="MIT" desc="">
+                <licensetext name="This version is MIT like the rest of libwebsockets" desc=""/>
+            </licensematcher>
+            <licensematcher name="Andy Green" desc="">
+                <licensetext name=' * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicefsme, and/or
+ * sell copies of the Software, and to permit persofsm to whom the Software is
+ * furnished to do so, subject to the following conditiofsm' desc=""/>
+            </licensematcher>
+        </licensematcherlist>
         <filefilterlist>
-            <filefilter name="defaultFilter" desc="Files not to check">
+            <filefilter name="binaryFileTypePolicyFilter" desc="Files not to check">
                 <filteritem type="filename" name="*.png" desc="Ignore this file, we do not use it."/>
                 <filteritem type="filename" name="*.jpg" desc="Ignore this file, we do not use it."/>
                 <filteritem type="filename" name="*.ico" desc="Ignore this file, we do not use it."/>
@@ -59,7 +81,23 @@
                 <filteritem type="filename" name="*.index" desc="Ignore this file, we do not use it."/>
                 <filteritem type="filename" name="*.pv" desc="Ignore this file, we do not use it."/>
                 <filteritem type="filename" name="*.ppn" desc="Ignore this file, we do not use it."/>
+                <filteritem type="filename" name="*.exe" desc="Ignore this file, we do not use it."/>
+                <filteritem type="filename" name="*.pem" desc="Ignore this file, we do not use it."/>
+                <filteritem type="filename" name="*.bin" desc="Ignore this file, we do not use it."/>
             </filefilter>
         </filefilterlist>
+        <policylist>
+            <policy name="defaultPolicy" desc="">
+                <policyitem type="compatibility" name="zlib-acknowledgement" path="win32port/zlib/.*" rule="may"
+                            group="defaultGroup"
+                            filefilter="defaultPolicyFilter" desc=""/>
+                <policyitem type="compatibility" name="CC0 1.0" path=".*" rule="may"
+                            group="defaultGroup"
+                            filefilter="defaultPolicyFilter" desc=""/>
+                <policyitem type="compatibility" name="Andy Green" path="lib/misc/fsmount.c" rule="may"
+                            group="defaultGroup"
+                            filefilter="defaultPolicyFilter" desc=""/>
+            </policy>
+        </policylist>
     </oatconfig>
 </configuration>
