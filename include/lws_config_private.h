@@ -1,7 +1,7 @@
 /*
  * libwebsockets - small server side websockets and web server implementation
  *
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to
@@ -21,16 +21,16 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
- 
+
 /* lws_config_private.h.in. Private compilation options. */
 
 #ifndef NDEBUG
-    #ifndef _DEBUG
-        #define _DEBUG
-    #endif
+	#ifndef _DEBUG
+		#define _DEBUG
+	#endif
 #endif
 
-/* Define to 1 to use CyaSSL as a replacement for OpenSSL. 
+/* Define to 1 to use CyaSSL as a replacement for OpenSSL.
  * LWS_OPENSSL_SUPPORT needs to be set also for this to work. */
 /* #undef USE_CYASSL */
 
