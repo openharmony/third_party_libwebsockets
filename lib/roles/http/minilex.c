@@ -46,20 +46,99 @@
  */
 
 unsigned char filter_array[] = {
-	0xff, 0xff, 0xaa, 0xff, 0xff, 0xff, 0xff, 0xcc, 0xff, 0xcc,
-	0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xcc, 0xff, 0xf0, 0xff, 0xaa,
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xfa, 0xcc, 0xcc, 0xcc, 0xf0, 0xf0, 0xf0, 0xf0,
-	0xf0, 0xfa, 0xff, 0xfa, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
-	0xff, 0xfa, 0xfa, 0xfa, 0xff, 0xff, 0xff, 0xff, 0xfa, 0xff,
-	0xfa, 0xfa, 0xfa, 0xfa, 0xaa, 0xaa, 0xaa, 0xff, 0xaa, 0xaa,
-	0xff, 0xff, 0xff, 0xff, 0xfa, 0xfa, 0xf0, 0xff, 0xff
+	0xff, /* get */
+	0xff, /* post */
+	0xaa, /* options */
+	0xff, /* host */
+	0xff, /* connection */
+	0xff, /* upgrade */
+	0xff, /* origin */
+	0xcc, /* sec-ws-draft */
+	0xff, /* crlf */
+	0xcc, /* sec-ws-ext */
+	0xcc, /* sec-ws-key1 */
+	0xcc, /* sec-ws-key2 */
+	0xcc, /* sec-ws-protocol */
+	0xcc, /* sec-ws-accept */
+	0xcc, /* sec-ws-nonce */
+	0xff, /* http/1.1 */
+	0xf0, /* http2-settings */
+	0xff, /* accept */
+	0xaa, /* access-control-req-hdrs */
+	0xff, /* if-modified-since */
+	0xff, /* if-none-match */
+	0xff, /* accept-encoding */
+	0xff, /* accept-language */
+	0xff, /* pragma */
+	0xff, /* cache-control */
+	0xff, /* authorization */
+	0xff, /* cookie */
+	0xff, /* content-length */
+	0xff, /* content-type */
+	0xff, /* date */
+	0xff, /* range */
+	0xfa, /* referer */
+	0xcc, /* sec-ws-key */
+	0xcc, /* sec-ws-version */
+	0xcc, /* sec-sc-origin */
+	0xf0, /* authority */
+	0xf0, /* method */
+	0xf0, /* path */
+	0xf0, /* scheme */
+	0xf0, /* status */
+	0xfa, /* accept-charset */
+	0xff, /* accept-ranges */
+	0xfa, /* access-control-allow-origin */
+	0xff, /* age */
+	0xff, /* allow */
+	0xff, /* content-disposition */
+	0xff, /* content-encoding */
+	0xff, /* content-language */
+	0xff, /* content-location */
+	0xff, /* content-range */
+	0xff, /* etag */
+	0xff, /* expect */
+	0xff, /* expires */
+	0xff, /* from */
+	0xff, /* if-match */
+	0xff, /* if-range */
+	0xff, /* if-unmodified-since */
+	0xff, /* last-modified */
+	0xff, /* link */
+	0xff, /* location */
+	0xfa, /* max-forwards */
+	0xfa, /* proxy-authenticate */
+	0xfa, /* proxy-authorization */
+	0xff, /* refresh */
+	0xff, /* retry-after */
+	0xff, /* server */
+	0xff, /* set-cookie */
+	0xfa, /* strict-transport-security */
+	0xff, /* transfer-encoding */
+	0xfa, /* user-agent */
+	0xfa, /* vary */
+	0xfa, /* via */
+	0xfa, /* www-authenticate */
+	0xaa, /* patch */
+	0xaa, /* put */
+	0xaa, /* delete */
+	0xff, /* uri-args */
+	0xaa, /* proxy */
+	0xaa, /* x-real-ip */
+	0xff, /* http/1.0 */
+	0xff, /* x-forwarded-for */
+	0xff, /* connect */
+	0xff, /* head */
+	0xfa, /* te */
+	0xfa, /* replay-nonce */
+	0xf0, /* protocol */
+	0xff, /* x-auth-token */
+	0xff /* not matchable */
 };
 
 static unsigned char lws_header_implies_psuedoheader_map[] = {
 	0x07, 0x00, 0x00, 0x00, 0xf8, 0x00, 0x00, 0x00, 0x00 /* <-64 */,
-	0x0e /* <- 72 */, 0x04 /* <- 80 */, 0, 0, 0, 0
+	0x0e /* <- 72 */, 0x24 /* <- 80 */, 0, 0, 0, 0
 };
 
 /*
@@ -170,10 +249,16 @@ int issue(int version)
 
 	memset(rset, 0, sizeof(rset));
 
-	printf("#if %cdefined(LWS_WITH_HTTP_UNCOMMON_HEADERS) && "
-		 "%cdefined(LWS_ROLE_WS) && "
-		 "%cdefined(LWS_ROLE_H2)\n", version & 1 ? ' ' : '!',
-		     version & 2 ? ' ' : '!', version & 4 ? ' ' : '!');
+	if (version == 7)
+		printf("#if defined(LWS_HTTP_HEADERS_ALL) || (%cdefined(LWS_WITH_HTTP_UNCOMMON_HEADERS) && "
+			 "%cdefined(LWS_ROLE_WS) && "
+			 "%cdefined(LWS_ROLE_H2))\n", version & 1 ? ' ' : '!',
+			     version & 2 ? ' ' : '!', version & 4 ? ' ' : '!');
+	else
+		printf("#if !defined(LWS_HTTP_HEADERS_ALL) && %cdefined(LWS_WITH_HTTP_UNCOMMON_HEADERS) && "
+			 "%cdefined(LWS_ROLE_WS) && "
+			 "%cdefined(LWS_ROLE_H2)\n", version & 1 ? ' ' : '!',
+			     version & 2 ? ' ' : '!', version & 4 ? ' ' : '!');
 
 	/*
 	 * let's create version's view of the set of strings
@@ -388,7 +473,13 @@ int main(void)
 
 	for (n = 0; n < 8; n++) {
 
-		printf("#if %cdefined(LWS_WITH_HTTP_UNCOMMON_HEADERS) && "
+		if (n == 7)
+			printf("#if defined(LWS_HTTP_HEADERS_ALL) || (%cdefined(LWS_WITH_HTTP_UNCOMMON_HEADERS) && "
+				 "%cdefined(LWS_ROLE_WS) && "
+				 "%cdefined(LWS_ROLE_H2))\n", n & 1 ? ' ' : '!',
+				     n & 2 ? ' ' : '!', n & 4 ? ' ' : '!');
+		else
+		printf("#if !defined(LWS_HTTP_HEADERS_ALL) && %cdefined(LWS_WITH_HTTP_UNCOMMON_HEADERS) && "
 			 "%cdefined(LWS_ROLE_WS) && "
 			 "%cdefined(LWS_ROLE_H2)\n", n & 1 ? ' ' : '!',
 			     n & 2 ? ' ' : '!', n & 4 ? ' ' : '!');
