@@ -27,10 +27,6 @@
 #include <private-lib-core.h>
 
 #if !defined(LWS_PLAT_FREERTOS) || defined(LWS_ROLE_H2)
-#define LWS_WITH_SS_RIDESHARE
-#endif
-
-#if defined(LWS_WITH_SS_RIDESHARE)
 static int
 ss_http_multipart_parser(lws_ss_handle_t *h, void *in, size_t len)
 {
@@ -166,8 +162,7 @@ secstream_h1(struct lws *wsi, enum lws_callback_reasons reason, void *user,
 	lws_ss_handle_t *h = (lws_ss_handle_t *)lws_get_opaque_user_data(wsi);
 	uint8_t buf[LWS_PRE + 1520], *p = &buf[LWS_PRE],
 		*end = &buf[sizeof(buf) - 1];
-	int f = 0, m, status, txr;
-	char conceal_eom = 0;
+	int f = 0, m, status;
 	size_t buflen;
 
 	switch (reason) {
@@ -195,9 +190,6 @@ secstream_h1(struct lws *wsi, enum lws_callback_reasons reason, void *user,
 		if (h->policy && !(h->policy->flags & LWSSSPOLF_OPPORTUNISTIC) &&
 		    !h->txn_ok && !wsi->context->being_destroyed)
 			lws_ss_backoff(h);
-		else
-			h->seqstate = SSSEQ_IDLE;
-
 		if (lws_ss_event_helper(h, LWSSSCS_DISCONNECTED))
 			lws_ss_destroy(&h);
 		break;
@@ -232,7 +224,7 @@ secstream_h1(struct lws *wsi, enum lws_callback_reasons reason, void *user,
 		 */
 		lws_validity_confirmed(wsi);
 
-#if defined(LWS_WITH_SS_RIDESHARE)
+#if !defined(LWS_PLAT_FREERTOS) || defined(LWS_ROLE_H2)
 
 		if (lws_hdr_copy(wsi, (char *)buf, sizeof(buf),
 				 WSI_TOKEN_HTTP_CONTENT_TYPE) > 0 &&
@@ -360,11 +352,10 @@ malformed:
 		}
 
 		/*
-		 * Content-length on POST / PUT if we have the length information
+		 * Content-length on POST if we have the length information
 		 */
 
-		if ((!strcmp(h->policy->u.http.method, "POST") ||
-		     !strcmp(h->policy->u.http.method, "PUT")) &&
+		if (!strcmp(h->policy->u.http.method, "POST") &&
 		    wsi->http.writeable_len) {
 			if (!(h->policy->flags &
 				LWSSSPOLF_HTTP_NO_CONTENT_LENGTH)) {
@@ -393,7 +384,7 @@ malformed:
 		if (!h)
 			return 0;
 
-#if defined(LWS_WITH_SS_RIDESHARE)
+#if !defined(LWS_PLAT_FREERTOS) || defined(LWS_ROLE_H2)
 		if (h->u.http.boundary[0])
 			return ss_http_multipart_parser(h, in, len);
 #endif
@@ -407,8 +398,7 @@ malformed:
 	//	lwsl_notice("%s: HTTP_READ: client side sent len %d fl 0x%x\n",
 	//		    __func__, (int)len, (int)f);
 
-		if (h->info.rx(ss_to_userobj(h), (const uint8_t *)in, len, f) < 0)
-			return -1;
+		h->info.rx(ss_to_userobj(h), (const uint8_t *)in, len, f);
 
 		return 0; /* don't passthru */
 
@@ -451,7 +441,7 @@ malformed:
 		if (!h->rideshare)
 			h->rideshare = h->policy;
 
-#if defined(LWS_WITH_SS_RIDESHARE)
+#if !defined(LWS_PLAT_FREERTOS) || defined(LWS_ROLE_H2)
 		if (!h->inside_msg && h->rideshare->u.http.multipart_name)
 			lws_client_http_multipart(wsi,
 				h->rideshare->u.http.multipart_name,
@@ -465,12 +455,7 @@ malformed:
 
 #endif
 
-		txr = h->info.tx(ss_to_userobj(h),  h->txord++, p, &buflen, &f);
-		if (txr < 0) {
-			lwsl_debug("%s: tx handler asked to close\n", __func__);
-			return -1;
-		}
-		if (txr > 0) {
+		if (h->info.tx(ss_to_userobj(h),  h->txord++, p, &buflen, &f)) {
 			/* don't want to send anything */
 			lwsl_debug("%s: dont want to write\n", __func__);
 			return 0;
@@ -482,21 +467,19 @@ malformed:
 		p += buflen;
 
 		if (f & LWSSS_FLAG_EOM) {
-#if defined(LWS_WITH_SS_RIDESHARE)
-			conceal_eom = 1;
+#if !defined(LWS_PLAT_FREERTOS) || defined(LWS_ROLE_H2)
 			/* end of rideshares */
 			if (!h->rideshare->rideshare_streamtype) {
 				lws_client_http_body_pending(wsi, 0);
 				if (h->rideshare->u.http.multipart_name)
 					lws_client_http_multipart(wsi, NULL, NULL, NULL,
 						(char **)&p, (char *)end);
-				conceal_eom = 0;
 			} else {
 #endif
 				h->rideshare = lws_ss_policy_lookup(wsi->context,
 						h->rideshare->rideshare_streamtype);
 				lws_callback_on_writable(wsi);
-#if defined(LWS_WITH_SS_RIDESHARE)
+#if !defined(LWS_PLAT_FREERTOS) || defined(LWS_ROLE_H2)
 			}
 #endif
 
@@ -513,9 +496,7 @@ malformed:
 			  lws_ptr_diff(p, buf + LWS_PRE), f);
 
 		if (lws_write(wsi, buf + LWS_PRE, lws_ptr_diff(p, buf + LWS_PRE),
-				 (!conceal_eom && (f & LWSSS_FLAG_EOM)) ?
-				    LWS_WRITE_HTTP_FINAL : LWS_WRITE_HTTP) !=
-				(int)lws_ptr_diff(p, buf + LWS_PRE)) {
+			 LWS_WRITE_HTTP) != (int)lws_ptr_diff(p, buf + LWS_PRE)) {
 			lwsl_err("%s: write failed\n", __func__);
 			return -1;
 		}
@@ -557,7 +538,7 @@ secstream_connect_munge_h1(lws_ss_handle_t *h, char *buf, size_t len,
 	if (!h->policy->u.http.url)
 		return 0;
 
-#if defined(LWS_WITH_SS_RIDESHARE)
+#if !defined(LWS_PLAT_FREERTOS) || defined(LWS_ROLE_H2)
 	if (h->policy->flags & LWSSSPOLF_HTTP_MULTIPART)
 		i->ssl_connection |= LCCSCF_HTTP_MULTIPART_MIME;
 

@@ -58,11 +58,7 @@ lws_client_connect_via_info(const struct lws_client_connect_info *i)
 	if (wsi == NULL)
 		goto bail;
 
-	/*
-	 * Until we exit, we can report connection failure directly to the
-	 * caller without needing to call through to protocol CONNECTION_ERROR.
-	 */
-	wsi->client_suppress_CONNECTION_ERROR = 1;
+
 
 	wsi->context = i->context;
 	wsi->desc.sockfd = LWS_SOCK_INVALID;
@@ -332,36 +328,33 @@ lws_client_connect_via_info(const struct lws_client_connect_info *i)
 		wsi->tls.ssl = NULL;
 
 		if (wsi->tls.use_ssl & LCCSCF_USE_SSL) {
-			const char *cce = NULL;
 
-			switch (
-#if !defined(LWS_WITH_SYS_ASYNC_DNS)
-			lws_client_create_tls(wsi, &cce, 1)
-#else
-			lws_client_create_tls(wsi, &cce, 0)
-#endif
-			) {
-			case 1:
-				return wsi;
-			case 0:
-				break;
-			default:
+			/* we can retry this... just cook the SSL BIO the first time */
+
+			if (lws_ssl_client_bio_create(wsi) < 0) {
+				lwsl_err("%s: bio_create failed\n", __func__);
 				goto bail3;
 			}
-		}
+
+#if !defined(LWS_WITH_SYS_ASYNC_DNS)
+			if (wsi->tls.use_ssl & LCCSCF_USE_SSL) {
+				n = lws_ssl_client_connect1(wsi);
+				if (!n)
+					return wsi;
+				if (n < 0) {
+					lwsl_err("%s: lws_ssl_client_connect1 failed\n", __func__);
+					goto bail3;
+				}
+			}
 #endif
+		}
+
 
 		/* fallthru */
+#endif
 
-		wsi = lws_http_client_connect_via_info2(wsi);
+		lws_http_client_connect_via_info2(wsi);
 	}
-
-	if (wsi)
-		/*
-		 * If it subsequently fails, report CONNECTION_ERROR,
-		 * because we're going to return a non-error return now.
-		 */
-		wsi->client_suppress_CONNECTION_ERROR = 0;
 
 	return wsi;
 

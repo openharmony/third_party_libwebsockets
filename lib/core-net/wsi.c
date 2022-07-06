@@ -445,13 +445,13 @@ void
 lws_role_transition(struct lws *wsi, enum lwsi_role role, enum lwsi_state state,
 		    const struct lws_role_ops *ops)
 {
-#if (_LWS_ENABLED_LOGS & LLL_DEBUG) 
+#if defined(_DEBUG)
 	const char *name = "(unset)";
 #endif
 	wsi->wsistate = role | state;
 	if (ops)
 		wsi->role_ops = ops;
-#if (_LWS_ENABLED_LOGS & LLL_DEBUG)
+#if defined(_DEBUG)
 	if (wsi->role_ops)
 		name = wsi->role_ops->name;
 	lwsl_debug("%s: %p: wsistate 0x%lx, ops %s\n", __func__, wsi,
@@ -637,11 +637,14 @@ lws_wsi_user(struct lws *wsi)
 void
 lws_set_wsi_user(struct lws *wsi, void *data)
 {
-	if (!wsi->user_space_externally_allocated && wsi->user_space)
-		lws_free(wsi->user_space);
-
-	wsi->user_space_externally_allocated = 1;
-	wsi->user_space = data;
+	    /* client and user owns it... */
+	if (wsi->user_space_externally_allocated ||
+	    /* server, and protocol can never own it, user can control it... */
+	    (wsi->protocol && !wsi->protocol->per_session_data_size))
+		wsi->user_space = data;
+	else
+		lwsl_err("%s: Cannot set internally-allocated user_space\n",
+			 __func__);
 }
 
 struct lws *
@@ -1066,12 +1069,6 @@ lws_wsi_client_stash_item(struct lws *wsi, int stash_idx, int hdr_idx)
 void
 lws_wsi_mux_insert(struct lws *wsi, struct lws *parent_wsi, int sid)
 {
-	lwsl_info("%s: wsi %p, par %p: assign sid %d (curr %d)\n", __func__,
-		  wsi, parent_wsi, sid, wsi->mux.my_sid);
-
-	if (wsi->mux.my_sid && wsi->mux.my_sid != (unsigned int)sid)
-		assert(0);
-
 	wsi->mux.my_sid = sid;
 	wsi->mux.parent_wsi = parent_wsi;
 	wsi->role_ops = parent_wsi->role_ops;
@@ -1188,8 +1185,8 @@ lws_wsi_mux_mark_parents_needing_writeable(struct lws *wsi)
 	wsi2 = wsi;
 	while (wsi2) {
 		wsi2->mux.requested_POLLOUT = 1;
-		lwsl_info("%s: mark wsi: %p, sid %u, pending writable\n",
-			  __func__, wsi2, wsi2->mux.my_sid);
+		lwsl_info("%s: mark %p (sid %u) pending writable\n", __func__,
+				wsi2, wsi2->mux.my_sid);
 		wsi2 = wsi2->mux.parent_wsi;
 	}
 

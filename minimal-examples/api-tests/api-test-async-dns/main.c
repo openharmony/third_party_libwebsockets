@@ -12,7 +12,7 @@
 #include <libwebsockets.h>
 #include <signal.h>
 
-static int interrupted, dtest, ok, fail, _exp = 26;
+static int interrupted, dtest, ok, fail, exp = 26;
 struct lws_context *context;
 
 /*
@@ -290,7 +290,7 @@ main(int argc, const char **argv)
 	}
 
 #if !defined(LWS_WITH_IPV6)
-	_exp -= 2;
+	exp -= 2;
 #endif
 
 	/* kick off the async dns tests */
@@ -305,11 +305,11 @@ main(int argc, const char **argv)
 
 	lws_context_destroy(context);
 
-	if (fail || ok != _exp)
-		lwsl_user("Completed: PASS: %d / %d, FAIL: %d\n", ok, _exp,
+	if (fail || ok != exp)
+		lwsl_user("Completed: PASS: %d / %d, FAIL: %d\n", ok, exp,
 				fail);
 	else
-		lwsl_user("Completed: ALL PASS: %d / %d\n", ok, _exp);
+		lwsl_user("Completed: ALL PASS: %d / %d\n", ok, exp);
 
-	return !(ok == _exp && !fail);
+	return !(ok == exp && !fail);
 }

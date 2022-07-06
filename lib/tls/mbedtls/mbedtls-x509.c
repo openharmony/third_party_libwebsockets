@@ -240,8 +240,7 @@ lws_x509_parse_from_pem(struct lws_x509_cert *x509, const void *pem, size_t len)
 
 	ret = mbedtls_x509_crt_parse(&x509->cert, pem, len);
 	if (ret) {
-		if (ret > 0)
-			mbedtls_x509_crt_free(&x509->cert);
+		mbedtls_x509_crt_free(&x509->cert);
 		lwsl_err("%s: unable to parse PEM cert: -0x%x\n",
 			 __func__, -ret);
 

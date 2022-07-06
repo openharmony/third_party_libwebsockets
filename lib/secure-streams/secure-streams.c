@@ -183,14 +183,12 @@ lws_ss_backoff(lws_ss_handle_t *h)
 }
 
 int
-_lws_ss_client_connect(lws_ss_handle_t *h, int is_retry)
+lws_ss_client_connect(lws_ss_handle_t *h)
 {
 	struct lws_client_connect_info i;
 	const struct ss_pcols *ssp;
-	size_t used_in, used_out;
 	union lws_ss_contemp ct;
-	char path[128], ep[96];
-	lws_strexp_t exp;
+	char path[128];
 
 	if (!h->policy) {
 		lwsl_err("%s: ss with no policy\n", __func__);
@@ -205,9 +203,6 @@ _lws_ss_client_connect(lws_ss_handle_t *h, int is_retry)
 	if (h->h_sink)
 		return 0;
 
-	if (!is_retry)
-		h->retry = 0;
-
 	memset(&i, 0, sizeof i); /* otherwise uninitialized garbage */
 	i.context = h->context;
 
@@ -215,33 +210,23 @@ _lws_ss_client_connect(lws_ss_handle_t *h, int is_retry)
 		lwsl_info("%s: using tls\n", __func__);
 		i.ssl_connection = LCCSCF_USE_SSL;
 
-		if (!h->policy->trust_store)
-			lwsl_info("%s: using platform trust store\n", __func__);
-		else {
+		if (!h->policy->trust_store) {
+			lwsl_err("%s: tls required but no policy trust store\n",
+				 __func__);
 
-			i.vhost = lws_get_vhost_by_name(h->context,
-							h->policy->trust_store->name);
-			if (!i.vhost) {
-				lwsl_err("%s: missing vh for policy ca\n", __func__);
+			return -1;
+		}
 
-				return -1;
-			}
+		i.vhost = lws_get_vhost_by_name(h->context,
+						h->policy->trust_store->name);
+		if (!i.vhost) {
+			lwsl_err("%s: missing vh for policy ca\n", __func__);
+
+			return -1;
 		}
 	}
 
-	/* expand metadata ${symbols} that may be inside the endpoint string */
-
-	lws_strexp_init(&exp, (void *)h, lws_ss_exp_cb_metadata, ep, sizeof(ep));
-
-	if (lws_strexp_expand(&exp, h->policy->endpoint,
-			      strlen(h->policy->endpoint),
-			      &used_in, &used_out) != LSTRX_DONE) {
-		lwsl_err("%s: address strexp failed\n", __func__);
-
-		return -1;
-	}
-
-	i.address = ep;
+	i.address = h->policy->endpoint;
 	i.port = h->policy->port;
 	i.host = i.address;
 	i.origin = i.address;
@@ -292,11 +277,6 @@ _lws_ss_client_connect(lws_ss_handle_t *h, int is_retry)
 	return 0;
 }
 
-int
-lws_ss_client_connect(lws_ss_handle_t *h)
-{
-	return _lws_ss_client_connect(h, 0);
-}
 
 /*
  * Public API
@@ -322,8 +302,8 @@ lws_ss_create(struct lws_context *context, int tsi, const lws_ss_info_t *ssi,
 
 	pol = lws_ss_policy_lookup(context, ssi->streamtype);
 	if (!pol) {
-		lwsl_info("%s: unknown stream type %s\n", __func__,
-			  ssi->streamtype);
+		lwsl_err("%s: unknown stream type %s\n", __func__,
+			 ssi->streamtype);
 		return 1;
 	}
 
@@ -443,9 +423,8 @@ lws_ss_create(struct lws_context *context, int tsi, const lws_ss_info_t *ssi,
 
 	lws_ss_event_helper(h, LWSSSCS_CREATING);
 
-	if (!ssi->register_sink &&
-	    ((h->policy->flags & LWSSSPOLF_NAILED_UP)))
-		if (_lws_ss_client_connect(h, 0))
+	if (!ssi->register_sink && (h->policy->flags & LWSSSPOLF_NAILED_UP))
+		if (lws_ss_client_connect(h))
 			lws_ss_backoff(h);
 
 	return 0;
@@ -512,11 +491,7 @@ lws_ss_request_tx(lws_ss_handle_t *h)
 	h->seqstate = SSSEQ_TRY_CONNECT;
 	lws_ss_event_helper(h, LWSSSCS_POLL);
 
-	/*
-	 * Retries operate via lws_ss_request_tx(), explicitly ask for a
-	 * reconnection to clear the retry limit
-	 */
-	if (_lws_ss_client_connect(h, 1))
+	if (lws_ss_client_connect(h))
 		lws_ss_backoff(h);
 }
 
