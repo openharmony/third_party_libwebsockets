@@ -197,7 +197,6 @@ elops_init_pt_event(struct lws_context *context, void *_loop, int tsi)
 					(EV_READ | EV_PERSIST), lws_event_cb,
 					&vh->lserv_wsi->w_read);
 			event_add(vh->lserv_wsi->w_read.event.watcher, NULL);
-			vh->lserv_wsi->w_read.event.set = 1;
 		}
 		vh = vh->vhost_next;
 	}
@@ -275,25 +274,17 @@ elops_io_event(struct lws *wsi, int flags)
 	       (flags & (LWS_EV_READ | LWS_EV_WRITE)));
 
 	if (flags & LWS_EV_START) {
-		if ((flags & LWS_EV_WRITE) && !wsi->w_write.event.set) {
+		if (flags & LWS_EV_WRITE)
 			event_add(wsi->w_write.event.watcher, NULL);
-			wsi->w_write.event.set = 1;
-		}
 
-		if ((flags & LWS_EV_READ) && !wsi->w_read.event.set) {
+		if (flags & LWS_EV_READ)
 			event_add(wsi->w_read.event.watcher, NULL);
-			wsi->w_read.event.set = 1;
-		}
 	} else {
-		if ((flags & LWS_EV_WRITE) && wsi->w_write.event.set) {
+		if (flags & LWS_EV_WRITE)
 			event_del(wsi->w_write.event.watcher);
-			wsi->w_write.event.set = 0;
-		}
 
-		if ((flags & LWS_EV_READ) && wsi->w_read.event.set) {
+		if (flags & LWS_EV_READ)
 			event_del(wsi->w_read.event.watcher);
-			wsi->w_read.event.set = 0;
-		}
 	}
 }
 
@@ -335,10 +326,8 @@ elops_destroy_pt_event(struct lws_context *context, int tsi)
 	if (!pt->event_loop_foreign) {
 		event_del(pt->w_sigint.event.watcher);
 		event_free(pt->w_sigint.event.watcher);
-		event_base_loopexit(pt->event.io_loop, NULL);
-	//	event_base_free(pt->event.io_loop);
-	//	pt->event.io_loop = NULL;
-		lwsl_notice("%s: set to exit loop\n", __func__);
+
+		event_base_free(pt->event.io_loop);
 	}
 }
 
@@ -439,9 +428,7 @@ elops_destroy_context2_event(struct lws_context *context)
 		} else
 			lwsl_debug("%s: %d: everything closed OK\n", __func__, n);
 #endif
-		lwsl_err("%s: event_base_free\n", __func__);
 		event_base_free(pt->event.io_loop);
-		pt->event.io_loop = NULL;
 
 	}
 

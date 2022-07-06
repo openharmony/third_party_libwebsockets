@@ -128,17 +128,12 @@ lws_state_notify_protocol_init(struct lws_state_manager *mgr,
 #if defined(LWS_WITH_SECURE_STREAMS_SYS_AUTH_API_AMAZON_COM)
 	/*
 	 * Skip this if we are running something without the policy for it
-	 *
-	 * If root token is empty, skip too.
 	 */
 	if (target == LWS_SYSTATE_AUTH1 &&
 	    context->pss_policies &&
 	    !lws_system_blob_get_size(lws_system_get_blob(context,
 						          LWS_SYSBLOB_TYPE_AUTH,
-						          0)) &&
-	    lws_system_blob_get_size(lws_system_get_blob(context,
-						          LWS_SYSBLOB_TYPE_AUTH,
-						          1))) {
+						          0))) {
 		lwsl_info("%s: AUTH1 state triggering api.amazon.com auth\n", __func__);
 		/*
 		 * Start trying to acquire it if it's not already in progress
@@ -527,13 +522,11 @@ lws_create_context(const struct lws_context_creation_info *info)
 		else
 			context->max_http_header_pool = context->max_fds;
 
-
 	if (info->fd_limit_per_thread)
 		context->fd_limit_per_thread = lpf;
 	else
-		if (context->count_threads)
-			context->fd_limit_per_thread = context->max_fds /
-							context->count_threads;
+		context->fd_limit_per_thread = context->max_fds /
+					       context->count_threads;
 
 #if defined(LWS_WITH_NETWORK)
 
@@ -944,9 +937,7 @@ lws_context_destroy3(struct lws_context *context)
 
 #if defined(LWS_WITH_NETWORK)
 
-	context->finalize_destroy_after_internal_loops_stopped = 1;
-	if (context->event_loop_ops->destroy_context2)
-		context->event_loop_ops->destroy_context2(context);
+	lwsl_debug("%s\n", __func__);
 
 	for (n = 0; n < context->count_threads; n++) {
 		struct lws_context_per_thread *pt = &context->pt[n];
@@ -962,10 +953,9 @@ lws_context_destroy3(struct lws_context *context)
 #if defined(LWS_WITH_CGI)
 		role_ops_cgi.pt_init_destroy(context, NULL, pt, 1);
 #endif
-#if 0
+
 		if (context->event_loop_ops->destroy_pt)
 			context->event_loop_ops->destroy_pt(context, n);
-#endif
 
 #if defined(LWS_ROLE_H1) || defined(LWS_ROLE_H2)
 		while (pt->http.ah_list)
@@ -1114,11 +1104,14 @@ lws_context_destroy2(struct lws_context *context)
 	lws_check_deferred_free(context, 0, 1);
 #endif
 
-	lws_context_unlock(context); /* } context ------ */
 
+#if LWS_MAX_SMP > 1
+	lws_mutex_refcount_destroy(&context->mr);
+#endif
 #if defined(LWS_WITH_NETWORK)
 	if (context->event_loop_ops->destroy_context2)
 		if (context->event_loop_ops->destroy_context2(context)) {
+			lws_context_unlock(context); /* } context ----------- */
 			context->finalize_destroy_after_internal_loops_stopped = 1;
 			return;
 		}
@@ -1130,10 +1123,12 @@ lws_context_destroy2(struct lws_context *context)
 		for (n = 0; n < context->count_threads; n++)
 			if (context->pt[n].inside_service) {
 				lwsl_debug("%p: bailing as inside service\n", __func__);
+				lws_context_unlock(context); /* } context --- */
 				return;
 			}
 	}
 #endif
+	lws_context_unlock(context); /* } context ------------------- */
 
 	lws_context_destroy3(context);
 }

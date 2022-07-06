@@ -351,7 +351,7 @@ lws_ss_deserialize_parse(struct lws_ss_serialization_parser *par,
 					goto hangup;
 				par->ps = RPAR_TYPE;
 				if (*pss)
-					_lws_ss_client_connect(*pss, 0);
+					lws_ss_client_connect(*pss);
 				break;
 
 			case LWSSS_SER_TXPRE_STREAMTYPE:

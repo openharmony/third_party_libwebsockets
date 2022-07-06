@@ -1,5 +1,5 @@
 Name: libwebsockets
-Version: 4.0.2
+Version: 4.0.0
 Release: 1%{?dist}
 Summary: Websocket Server and Client Library
 

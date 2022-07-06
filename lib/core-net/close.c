@@ -207,10 +207,9 @@ lws_inform_client_conn_fail(struct lws *wsi, void *arg, size_t len)
 	if (!wsi->protocol)
 		return;
 
-	if (!wsi->client_suppress_CONNECTION_ERROR)
-		wsi->protocol->callback(wsi,
-					LWS_CALLBACK_CLIENT_CONNECTION_ERROR,
-					wsi->user_space, arg, len);
+	wsi->protocol->callback(wsi,
+			        LWS_CALLBACK_CLIENT_CONNECTION_ERROR,
+				wsi->user_space, arg, len);
 }
 #endif
 
@@ -488,7 +487,7 @@ just_kill_connection:
 #endif
 		{
 			lwsl_info("%s: shutdown conn: %p (sk %d, state 0x%x)\n",
-				  __func__, wsi, (int)(lws_intptr_t)wsi->desc.sockfd,
+				  __func__, wsi, (int)(long)wsi->desc.sockfd,
 				  lwsi_state(wsi));
 			if (!wsi->socket_is_permanently_unusable &&
 			    lws_socket_is_valid(wsi->desc.sockfd)) {

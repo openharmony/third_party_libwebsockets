@@ -46,7 +46,7 @@ lws_state_reg_notifier_list(lws_state_manager_t *mgr,
 			lws_state_reg_notifier(mgr, *notify_link_array++);
 }
 
-#if (_LWS_ENABLED_LOGS & (LLL_INFO | LLL_DEBUG))
+#if defined(_DEBUG)
 static const char *
 _systnm(lws_state_manager_t *mgr, int state, char *temp8)
 {
@@ -62,7 +62,7 @@ _systnm(lws_state_manager_t *mgr, int state, char *temp8)
 static int
 _report(lws_state_manager_t *mgr, int a, int b)
 {
-#if (_LWS_ENABLED_LOGS & LLL_INFO)
+#if defined(_DEBUG)
 	char temp8[8];
 #endif
 
@@ -72,14 +72,12 @@ _report(lws_state_manager_t *mgr, int a, int b)
 
 		if (l->notify_cb(mgr, l, a, b)) {
 			/* a dependency took responsibility for retry */
-
-#if (_LWS_ENABLED_LOGS & LLL_INFO)
+#if defined(_DEBUG)
 			lwsl_info("%s: %s: %s: rejected '%s' -> '%s'\n",
 				   __func__, mgr->name, l->name,
 				   _systnm(mgr, a, temp8),
 				   _systnm(mgr, b, temp8));
 #endif
-
 			return 1;
 		}
 
@@ -91,14 +89,14 @@ _report(lws_state_manager_t *mgr, int a, int b)
 static int
 _lws_state_transition(lws_state_manager_t *mgr, int target)
 {
-#if (_LWS_ENABLED_LOGS & LLL_DEBUG)
+#if defined(_DEBUG)
 	char temp8[8];
 #endif
 
 	if (_report(mgr, mgr->state, target))
 		return 1;
 
-#if (_LWS_ENABLED_LOGS & LLL_DEBUG)
+#if defined(_DEBUG)
 	lwsl_debug("%s: %s: changed %d '%s' -> %d '%s'\n", __func__, mgr->name,
 		   mgr->state, _systnm(mgr, mgr->state, temp8), target,
 		   _systnm(mgr, target, temp8));
@@ -116,7 +114,7 @@ int
 lws_state_transition_steps(lws_state_manager_t *mgr, int target)
 {
 	int n = 0;
-#if (_LWS_ENABLED_LOGS & LLL_INFO)
+#if defined(_DEBUG)
 	int i = mgr->state;
 	char temp8[8];
 #endif
@@ -124,7 +122,7 @@ lws_state_transition_steps(lws_state_manager_t *mgr, int target)
 	while (!n && mgr->state != target)
 		n = _lws_state_transition(mgr, mgr->state + 1);
 
-#if (_LWS_ENABLED_LOGS & LLL_INFO)
+#if defined(_DEBUG)
 	lwsl_info("%s: %s -> %s\n", __func__, _systnm(mgr, i, temp8),
 			_systnm(mgr, mgr->state, temp8));
 #endif

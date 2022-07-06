@@ -42,13 +42,10 @@ enum urldecode_stateful {
 	MT_COMPLETED,
 };
 
-static struct mp_hdr {
-	const char * const	hdr;
-	uint8_t			hdr_len;
-} mp_hdrs[] = {
-	{ "content-disposition: ", 21 },
-	{ "content-type: ", 14 },
-	{ "\x0d\x0a", 2 }
+static const char * const mp_hdr[] = {
+	"content-disposition: ",
+	"content-type: ",
+	"\x0d\x0a"
 };
 
 struct lws_spa;
@@ -72,12 +69,10 @@ struct lws_urldecode_stateful {
 	int mp;
 	int sum;
 
-	uint8_t matchable;
-
-	uint8_t multipart_form_data:1;
-	uint8_t inside_quote:1;
-	uint8_t subname:1;
-	uint8_t boundary_real_crlf:1;
+	unsigned int multipart_form_data:1;
+	unsigned int inside_quote:1;
+	unsigned int subname:1;
+	unsigned int boundary_real_crlf:1;
 
 	enum urldecode_stateful state;
 
@@ -138,10 +133,8 @@ lws_urldecode_s_create(struct lws_spa *spa, struct lws *wsi, char *out,
 				s->mime_boundary[m++] = '\x0a';
 				s->mime_boundary[m++] = '-';
 				s->mime_boundary[m++] = '-';
-				if (*p == '\"')
-					p++;
 				while (m < (int)sizeof(s->mime_boundary) - 1 &&
-				       *p && *p != ' ' && *p != ';' && *p != '\"')
+				       *p && *p != ' ' && *p != ';')
 					s->mime_boundary[m++] = *p++;
 				s->mime_boundary[m] = '\0';
 
@@ -157,7 +150,7 @@ static int
 lws_urldecode_s_process(struct lws_urldecode_stateful *s, const char *in,
 			int len)
 {
-	int n, hit;
+	int n, m, hit = 0;
 	char c;
 
 	while (len--) {
@@ -288,52 +281,29 @@ retry_as_first:
 			break;
 
 		case MT_HNAME:
+			m = 0;
 			c =*in;
 			if (c >= 'A' && c <= 'Z')
 				c += 'a' - 'A';
-			if (!s->mp)
-				/* initially, any of them might match */
-				s->matchable = (1 << LWS_ARRAY_SIZE(mp_hdrs)) - 1; 
-
-			hit = -1;
-			for (n = 0; n < (int)LWS_ARRAY_SIZE(mp_hdrs); n++) {
-
-				if (!(s->matchable & (1 << n)))
-					continue;
-				/* this guy is still in contention... */
-
-				if (s->mp >= mp_hdrs[n].hdr_len) {
-					/* he went past the end of it */
-					s->matchable &= ~(1 << n);
-					continue;
-				}
-
-				if (c != mp_hdrs[n].hdr[s->mp]) {
-					/* mismatched a char */
-					s->matchable &= ~(1 << n);
-					continue;
-				}
-
-				if (s->mp + 1 == mp_hdrs[n].hdr_len) {
-					/* we have a winner... */
+			for (n = 0; n < (int)LWS_ARRAY_SIZE(mp_hdr); n++)
+				if (c == mp_hdr[n][s->mp]) {
+					m++;
 					hit = n;
-					break;
 				}
-			}
-
 			in++;
-			if (hit == -1 && !s->matchable) {
-				/* We ruled them all out */
+			if (!m) {
+				/* Unknown header - ignore it */
 				s->state = MT_IGNORE1;
 				s->mp = 0;
 				continue;
 			}
 
 			s->mp++;
-			if (hit < 0)
+			if (m != 1)
 				continue;
 
-			/* we matched the one in hit */
+			if (mp_hdr[hit][s->mp])
+				continue;
 
 			s->mp = 0;
 			s->temp[0] = '\0';

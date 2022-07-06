@@ -13,17 +13,6 @@ creation, but able to be updated from a remote copy.
 
 ![overview](../doc-assets/ss-explain.png)
 
-## Convention for rx and tx callback return
-
-Function|Return|Meaning
----|---|---
-tx|0|Send the amount of `buf` stored in `*len`
-tx|>0|Do not send anything
-tx|<0|Finished with stream
-rx|>=0|accepted
-rx|<0|Finished with stream
-
-
 # JSON Policy Database
 
 Example JSON policy... formatting is shown for clarity but whitespace can be
@@ -130,14 +119,7 @@ These are an array of policies for the supported stream type names.
 
 ### `endpoint`
 
-The DNS address the secure stream should connect to.
-
-This may contain string symbols which will be replaced with the
-corresponding streamtype metadata value at runtime.  Eg, if the
-streamtype lists a metadata name "region", it's then possible to
-define the endpoint as, eg, `${region}.mysite.com`, and before
-attempting the connection setting the stream's metadata item
-"region" to the desired value, eg, "uk".
+The DNS address the secure stream should connect to
 
 ### `port`
 
@@ -411,7 +393,7 @@ directly parses the policy and makes the outgoing connections itself.
 However when configured at cmake with
 
 ```
--DLWS_WITH_SOCKS5=1 -DLWS_WITH_SECURE_STREAMS=1 -DLWS_WITH_SECURE_STREAMS_PROXY_API=1 -DLWS_WITH_MINIMAL_EXAMPLES=1
+-DLWS_WITH_SOCKS=1 -DLWS_WITH_SECURE_STREAMS=1 -DLWS_WITH_SECURE_STREAMS_PROXY_API=1 -DLWS_WITH_MINIMAL_EXAMPLES=1
 ```
 
 and define `LWS_SS_USE_SSPC` when building the application, applications forward

@@ -21,7 +21,6 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-#include <string.h>
 
 #include "private-lib-core.h"
 #include "private-lib-tls-openssl.h"
@@ -190,15 +189,12 @@ lws_ssl_client_bio_create(struct lws *wsi)
 	if (!(wsi->tls.use_ssl & LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK)) {
 		X509_VERIFY_PARAM *param = SSL_get0_param(wsi->tls.ssl);
 
-#if !defined(USE_WOLFSSL)
 		/* Enable automatic hostname checks */
 		X509_VERIFY_PARAM_set_hostflags(param,
 					X509_CHECK_FLAG_NO_PARTIAL_WILDCARDS);
-#endif
-		/* Handle the case where the hostname is an IP address */
+		// Handle the case where the hostname is an IP address.
 		if (!X509_VERIFY_PARAM_set1_ip_asc(param, hostname))
-			X509_VERIFY_PARAM_set1_host(param, hostname,
-					strnlen(hostname, sizeof(hostname)));
+			X509_VERIFY_PARAM_set1_host(param, hostname, 0);
 	}
 #else
 	if (!(wsi->tls.use_ssl & LCCSCF_SKIP_SERVER_CERT_HOSTNAME_CHECK)) {
@@ -259,7 +255,7 @@ lws_ssl_client_bio_create(struct lws *wsi)
 #endif
 #endif /* USE_WOLFSSL */
 
-	wsi->tls.client_bio = BIO_new_socket((int)(lws_intptr_t)wsi->desc.sockfd,
+	wsi->tls.client_bio = BIO_new_socket((int)(long long)wsi->desc.sockfd,
 					     BIO_NOCLOSE);
 	SSL_set_bio(wsi->tls.ssl, wsi->tls.client_bio, wsi->tls.client_bio);
 
@@ -317,11 +313,7 @@ lws_ssl_client_bio_create(struct lws *wsi)
 		if (lws_system_blob_get_single_ptr(b, &data))
 			goto no_client_cert;
 
-		if (SSL_use_certificate_ASN1(wsi->tls.ssl,
-#if defined(USE_WOLFSSL)
-			(unsigned char *)
-#endif
-					data, (int)size) != 1) {
+		if (SSL_use_certificate_ASN1(wsi->tls.ssl, data, (int)size) != 1) {
 			lwsl_err("%s: use_certificate failed\n", __func__);
 			lws_tls_err_describe_clear();
 			goto no_client_cert;
@@ -341,15 +333,8 @@ lws_ssl_client_bio_create(struct lws *wsi)
 			goto no_client_cert;
 
 		if (SSL_use_PrivateKey_ASN1(EVP_PKEY_RSA, wsi->tls.ssl,
-#if defined(USE_WOLFSSL)
-			(unsigned char *)
-#endif
-
 					    data, (int)size) != 1 &&
 		    SSL_use_PrivateKey_ASN1(EVP_PKEY_EC, wsi->tls.ssl,
-#if defined(USE_WOLFSSL)
-			(unsigned char *)
-#endif
 					    data, (int)size) != 1) {
 			lwsl_err("%s: use_privkey failed\n", __func__);
 			lws_tls_err_describe_clear();
@@ -384,17 +369,13 @@ lws_tls_client_connect(struct lws *wsi)
 	char a[32];
 	unsigned int len;
 #endif
-	int m, n;
-#if defined(WIN32) || (_LWS_ENABLED_LOGS & LLL_INFO)
-	int en;
-#endif
+	int m, n, en;
 
 	errno = 0;
 	ERR_clear_error();
 	n = SSL_connect(wsi->tls.ssl);
-#if defined(WIN32) || (_LWS_ENABLED_LOGS & LLL_INFO)
 	en = errno;
-#endif
+
 	m = lws_ssl_get_error(wsi, n);
 
 	if (m == SSL_ERROR_SYSCALL
@@ -402,9 +383,7 @@ lws_tls_client_connect(struct lws *wsi)
 			&& en
 #endif
 	) {
-#if defined(WIN32) || (_LWS_ENABLED_LOGS & LLL_INFO)
 		lwsl_info("%s: n %d, m %d, errno %d\n", __func__, n, m, en);
-#endif
 		return LWS_SSL_CAPABLE_ERROR;
 	}
 

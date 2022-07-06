@@ -248,8 +248,6 @@ lws_wsi_server_new(struct lws_vhost *vh, struct lws *parent_wsi,
 	h2n->highest_sid_opened = sid;
 
 	lws_wsi_mux_insert(wsi, parent_wsi, sid);
-	if (sid >= h2n->highest_sid)
-		h2n->highest_sid = sid + 2;
 
 	wsi->mux_substream = 1;
 	wsi->seen_nonpseudoheader = 0;
@@ -316,16 +314,10 @@ lws_wsi_h2_adopt(struct lws *parent_wsi, struct lws *wsi)
 #endif
 	wsi->h2.initialized = 1;
 
-#if 0
-	/* only assign sid at header send time when we know it */
 	if (!wsi->mux.my_sid) {
 		wsi->mux.my_sid = nwsi->h2.h2n->highest_sid;
 		nwsi->h2.h2n->highest_sid += 2;
 	}
-#endif
-
-	lwsl_info("%s: binding wsi %p to sid %d (next %d)\n", __func__,
-			wsi, (int)wsi->mux.my_sid, (int)nwsi->h2.h2n->highest_sid);
 
 	lws_wsi_mux_insert(wsi, parent_wsi, wsi->mux.my_sid);
 
@@ -1227,9 +1219,6 @@ lws_h2_parse_frame_header(struct lws *wsi)
 				return 1;
 			}
 
-			if (h2n->sid >= h2n->highest_sid)
-				h2n->highest_sid = h2n->sid + 2;
-
 			h2n->swsi->h2.initialized = 1;
 
 			if (lws_h2_update_peer_txcredit(h2n->swsi,
@@ -1414,7 +1403,6 @@ lws_h2_parse_end_of_frame(struct lws *wsi)
 			/* pass on the initial headers to SID 1 */
 			h2n->swsi->http.ah = wsi->http.ah;
 			h2n->swsi->client_mux_substream = 1;
-			h2n->swsi->client_h2_alpn = 1;
 #if defined(LWS_WITH_CLIENT)
 			h2n->swsi->flags = wsi->flags;
 #endif
@@ -1581,9 +1569,6 @@ lws_h2_parse_end_of_frame(struct lws *wsi)
 		}
 
 		switch (h2n->swsi->h2.h2_state) {
-		case LWS_H2_STATE_IDLE:
-			lws_h2_state(h2n->swsi, LWS_H2_STATE_OPEN);
-			break;
 		case LWS_H2_STATE_OPEN:
 			if (h2n->swsi->h2.END_STREAM)
 				lws_h2_state(h2n->swsi,
@@ -1597,8 +1582,7 @@ lws_h2_parse_end_of_frame(struct lws *wsi)
 
 #if defined(LWS_WITH_CLIENT)
 		if (h2n->swsi->client_mux_substream) {
-			lwsl_info("%s: wsi %p: headers: client path (h2 state %s)\n",
-				  __func__, wsi, h2_state_names[h2n->swsi->h2.h2_state]);
+			lwsl_info("%s: headers: client path\n", __func__);
 			break;
 		}
 #endif
@@ -2333,16 +2317,8 @@ lws_h2_client_handshake(struct lws *wsi)
 
 	lwsl_debug("%s\n", __func__);
 
-	/*
-	 * We MUST allocate our sid here at the point we're about to send the
-	 * stream open.  It's because we don't know the order in which multiple
-	 * open streams will send their headers... in h2, sending the headers
-	 * is the point the stream is opened.  The peer requires that we only
-	 * open streams in ascending sid order
-	 */
-
-	wsi->mux.my_sid = nwsi->h2.h2n->highest_sid_opened = sid;
-	lwsl_info("%s: wsi %p: assigning SID %d at header send\n", __func__, wsi, sid);
+	nwsi->h2.h2n->highest_sid_opened = sid;
+	wsi->mux.my_sid = sid;
 
 	lwsl_info("%s: CLIENT_WAITING_TO_SEND_HEADERS: pollout (sid %d)\n",
 			__func__, wsi->mux.my_sid);
@@ -2382,8 +2358,7 @@ lws_h2_client_handshake(struct lws *wsi)
 				&p, end))
 		goto fail_length;
 
-	if (!wsi->client_h2_alpn &&
-	    lws_add_http_header_by_token(wsi, WSI_TOKEN_HOST,
+	if (lws_add_http_header_by_token(wsi, WSI_TOKEN_HOST,
 				(unsigned char *)lws_hdr_simple_ptr(wsi,
 						_WSI_TOKEN_CLIENT_HOST),
 			lws_hdr_total_length(wsi, _WSI_TOKEN_CLIENT_HOST),
@@ -2455,7 +2430,7 @@ lws_h2_client_handshake(struct lws *wsi)
 		wsi->txc.manual = 1;
 	}
 
-	if (lws_h2_update_peer_txcredit(wsi, wsi->mux.my_sid, n))
+	if (lws_h2_update_peer_txcredit(wsi, sid, n))
 		return 1;
 
 	lws_h2_state(wsi, LWS_H2_STATE_OPEN);

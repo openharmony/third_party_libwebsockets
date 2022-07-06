@@ -22,7 +22,6 @@
 #cmakedefine LWS_BUILD_HASH "${LWS_BUILD_HASH}"
 #cmakedefine LWS_BUILTIN_GETIFADDRS
 #cmakedefine LWS_CLIENT_HTTP_PROXYING
-#cmakedefine LWS_DETECTED_PLAT_IOS
 #cmakedefine LWS_FALLBACK_GETHOSTBYNAME
 #cmakedefine LWS_HAS_INTPTR_T
 #cmakedefine LWS_HAS_GETOPT_LONG
@@ -54,7 +53,6 @@
 #cmakedefine LWS_HAVE_mbedtls_ssl_set_hs_ca_chain
 #cmakedefine LWS_HAVE_mbedtls_ssl_set_hs_own_cert
 #cmakedefine LWS_HAVE_mbedtls_ssl_set_hs_authmode
-#cmakedefine LWS_HAVE_MBEDTLS_NET_SOCKETS
 #cmakedefine LWS_HAVE_NEW_UV_VERSION_H
 #cmakedefine LWS_HAVE_OPENSSL_ECDH_H
 #cmakedefine LWS_HAVE_PIPE2
@@ -80,8 +78,6 @@
 #cmakedefine LWS_HAVE_X509_get_key_usage
 #cmakedefine LWS_HAVE_X509_VERIFY_PARAM_set1_host
 #cmakedefine LWS_LIBRARY_VERSION "${LWS_LIBRARY_VERSION}"
-#define LWS_LOGGING_BITFIELD_CLEAR ${LWS_LOGGING_BITFIELD_CLEAR}
-#define LWS_LOGGING_BITFIELD_SET ${LWS_LOGGING_BITFIELD_SET}
 #cmakedefine LWS_MINGW_SUPPORT
 #cmakedefine LWS_NO_CLIENT
 #cmakedefine LWS_NO_DAEMONIZE

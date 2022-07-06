@@ -24,68 +24,6 @@
 
 #include "private-lib-core.h"
 
-#if defined(LWS_WITH_TLS)
-int
-lws_client_create_tls(struct lws *wsi, const char **pcce, int do_c1)
-{
-	int n;
-
-	/* we can retry this... just cook the SSL BIO the first time */
-
-	if (wsi->tls.use_ssl & LCCSCF_USE_SSL) {
-
-		if (!wsi->tls.ssl) {
-			if (lws_ssl_client_bio_create(wsi) < 0) {
-				*pcce = "bio_create failed";
-				return -1;
-			}
-
-			if (!wsi->transaction_from_pipeline_queue &&
-			    lws_tls_restrict_borrow(wsi->context)) {
-				*pcce = "tls restriction limit";
-				return -1;
-			}
-		}
-
-		if (!do_c1)
-			return 0;
-
-		n = lws_ssl_client_connect1(wsi);
-		if (!n)
-			return 1; /* caller should return 0 */
-		if (n < 0) {
-			*pcce = "lws_ssl_client_connect1 failed";
-			return -1;
-		}
-	} else
-		wsi->tls.ssl = NULL;
-
-#if defined (LWS_WITH_HTTP2)
-	if (wsi->client_h2_alpn) {
-		/*
-		 * We connected to the server and set up tls, and
-		 * negotiated "h2".
-		 *
-		 * So this is it, we are an h2 master client connection
-		 * now, not an h1 client connection.
-		 */
-#if defined(LWS_WITH_TLS)
-		lws_tls_server_conn_alpn(wsi);
-#endif
-
-		/* send the H2 preface to legitimize the connection */
-		if (lws_h2_issue_preface(wsi)) {
-			*pcce = "error sending h2 preface";
-			return -1;
-		}
-	}
-#endif
-
-	return 0; /* OK */
-}
-
-#endif
-
 void
 lws_client_http_body_pending(struct lws *wsi, int something_left_to_send)
 {
@@ -213,11 +151,30 @@ start_ws_handshake:
 			return -1;
 
 #if defined(LWS_WITH_TLS)
-		n = lws_client_create_tls(wsi, &cce, 1);
-		if (n < 0)
-			goto bail3;
-		if (n == 1)
-			return 0;
+		/* we can retry this... just cook the SSL BIO the first time */
+
+		if (wsi->tls.use_ssl & LCCSCF_USE_SSL) {
+
+			if (!wsi->transaction_from_pipeline_queue &&
+			    lws_tls_restrict_borrow(wsi->context)) {
+				cce = "tls restriction limit";
+				goto bail3;
+			}
+
+			if (!wsi->tls.ssl && lws_ssl_client_bio_create(wsi) < 0) {
+				cce = "bio_create failed";
+				goto bail3;
+			}
+
+			n = lws_ssl_client_connect1(wsi);
+			if (!n)
+				return 0;
+			if (n < 0) {
+				cce = "lws_ssl_client_connect1 failed";
+				goto bail3;
+			}
+		} else
+			wsi->tls.ssl = NULL;
 
 		/* fallthru */
 
@@ -263,13 +220,12 @@ start_ws_handshake:
 				goto bail3;
 			}
 
-		//	lwsi_set_state(wsi, LRS_H1C_ISSUE_HANDSHAKE2);
-			lws_set_timeout(wsi, PENDING_TIMEOUT_AWAITING_CLIENT_HS_SEND,
-					context->timeout_secs);
-
 			break;
 		}
 #endif
+		lwsi_set_state(wsi, LRS_H1C_ISSUE_HANDSHAKE2);
+		lws_set_timeout(wsi, PENDING_TIMEOUT_AWAITING_CLIENT_HS_SEND,
+				context->timeout_secs);
 
 		/* fallthru */
 
@@ -336,7 +292,9 @@ start_ws_handshake:
 #if defined(LWS_ROLE_H1) || defined(LWS_ROLE_H2)
 			wsi->http.ah->parser_state = WSI_TOKEN_NAME_PART;
 			wsi->http.ah->lextable_pos = 0;
+#if defined(LWS_WITH_CUSTOM_HEADERS)
 			wsi->http.ah->unk_pos = 0;
+#endif
 			/* If we're (re)starting on hdr, need other implied init */
 			wsi->http.ah->ues = URIES_IDLE;
 #endif
@@ -368,7 +326,9 @@ client_http_body_sent:
 		/* prepare ourselves to do the parsing */
 		wsi->http.ah->parser_state = WSI_TOKEN_NAME_PART;
 		wsi->http.ah->lextable_pos = 0;
+#if defined(LWS_WITH_CUSTOM_HEADERS)
 		wsi->http.ah->unk_pos = 0;
+#endif
 #endif
 		lwsi_set_state(wsi, LRS_WAITING_SERVER_REPLY);
 		lws_set_timeout(wsi, PENDING_TIMEOUT_AWAITING_SERVER_RESPONSE,
@@ -533,7 +493,9 @@ lws_http_transaction_completed_client(struct lws *wsi)
 
 	wsi->http.ah->parser_state = WSI_TOKEN_NAME_PART;
 	wsi->http.ah->lextable_pos = 0;
+#if defined(LWS_WITH_CUSTOM_HEADERS)
 	wsi->http.ah->unk_pos = 0;
+#endif
 
 	lws_set_timeout(wsi, PENDING_TIMEOUT_AWAITING_SERVER_RESPONSE,
 			wsi->context->timeout_secs);
@@ -905,7 +867,7 @@ lws_client_interpret_server_handshake(struct lws *wsi)
 
 		wsi->http.ah = ah1;
 
-		lwsl_info("%s: wsi %p: client connection up\n", __func__, wsi);
+		lwsl_info("%s: client connection up\n", __func__);
 
 		/*
 		 * Did we get a response from the server with an explicit
@@ -915,21 +877,6 @@ lws_client_interpret_server_handshake(struct lws *wsi)
 		if (lws_hdr_total_length(wsi, WSI_TOKEN_HTTP_CONTENT_LENGTH) &&
 		    !wsi->http.rx_content_length)
 		        return !!lws_http_transaction_completed_client(wsi);
-
-		/*
-		 * We can also get a case where it's http/1 and there's no
-		 * content-length at all, so anything that comes is the body
-		 * until it hangs up on us.  With that situation, hanging up
-		 * on us past this point should generate a valid
-		 * LWS_CALLBACK_COMPLETED_CLIENT_HTTP.
-		 *
-		 * In that situation, he can't pipeline because in h1 there's
-		 * no post-header in-band way to signal the end of the
-		 * transaction except hangup.
-		 *
-		 * lws_http_transaction_completed_client() is the right guy to
-		 * issue it when we see the peer has hung up on us.
-		 */
 
 		return 0;
 	}
@@ -983,7 +930,7 @@ lws_http_multipart_headers(struct lws *wsi, uint8_t *p)
 			       wsi->http.multipart_boundary,
 			       sizeof(wsi->http.multipart_boundary));
 
-	n = lws_snprintf(arg, sizeof(arg), "multipart/form-data; boundary=\"%s\"",
+	n = lws_snprintf(arg, sizeof(arg), "multipart/form-data; boundary=%s",
 			 wsi->http.multipart_boundary);
 
 	if (lws_add_http_header_by_token(wsi, WSI_TOKEN_HTTP_CONTENT_TYPE,
@@ -1240,23 +1187,6 @@ lws_http_client_read(struct lws *wsi, char **buf, int *len)
 
 	if (buffered < 0) {
 		lwsl_debug("%s: SSL capable error\n", __func__);
-
-		if (wsi->http.ah &&
-		    wsi->http.ah->parser_state == WSI_PARSING_COMPLETE &&
-		    !lws_hdr_total_length(wsi, WSI_TOKEN_HTTP_CONTENT_LENGTH))
-			/*
-			 * We had the headers from this stream, but as there
-			 * was no content-length: we had to wait until the
-			 * stream ended to inform the user code the transaction
-			 * has completed to the best of our knowledge
-			 */
-			if (lws_http_transaction_completed_client(wsi))
-				/*
-				 * We're going to close anyway, but that api has
-				 * warn_unused_result
-				 */
-				return -1;
-
 		return -1;
 	}
 
