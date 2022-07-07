@@ -14,10 +14,30 @@ static int interrupted, ok, fail, exp = 1;
 struct lws_context *context;
 const char *nif;
 
+static const char * const sa46_names[] = {
+	"LWSDH_SA46_IP",
+	"LWSDH_SA46_DNS_SRV_1",
+	"LWSDH_SA46_DNS_SRV_2",
+	"LWSDH_SA46_DNS_SRV_3",
+	"LWSDH_SA46_DNS_SRV_4",
+	"LWSDH_SA46_IPV4_ROUTER",
+	"LWSDH_SA46_NTP_SERVER",
+	"LWSDH_SA46_DHCP_SERVER",
+};
+
 static int
-lws_dhcpc_cb(void *opaque, int af, uint8_t *ip, int ip_len)
+lws_dhcpc_cb(void *opaque, lws_dhcpc_ifstate_t *is)
 {
+	unsigned int n;
+	char buf[64];
+
 	lwsl_user("%s: dhcp set OK\n", __func__);
+
+	for (n = 0; n < LWS_ARRAY_SIZE(sa46_names); n++) {
+		lws_sa46_write_numeric_address(&is->sa46[n], buf, sizeof(buf));
+		lwsl_notice("%s: %s: %s\n", __func__, sa46_names[n], buf);
+	}
+
 	ok = 1;
 	interrupted = 1;
 	return 0;
@@ -32,7 +52,9 @@ int
 main(int argc, const char **argv)
 {
 	struct lws_context_creation_info info;
+#if !defined(__COVERITY__)
 	const char *p;
+#endif
 	int n = 1;
 
 	signal(SIGINT, sigint_handler);
@@ -44,8 +66,10 @@ main(int argc, const char **argv)
 	info.port = CONTEXT_PORT_NO_LISTEN;
 	info.options = LWS_SERVER_OPTION_DO_SSL_GLOBAL_INIT;
 
+#if !defined(__COVERITY__)
 	if ((p = lws_cmdline_option(argc, argv, "-i")))
 		nif = p;
+#endif
 
 	context = lws_create_context(&info);
 	if (!context) {
