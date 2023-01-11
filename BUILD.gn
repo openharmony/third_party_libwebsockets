@@ -88,6 +88,8 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/lib/roles/ws/server-ws.c",
     "//third_party/libwebsockets/lib/system/smd/smd.c",
     "//third_party/libwebsockets/lib/system/system.c",
+	
+	#################################################
     "//third_party/libwebsockets/lib/tls/openssl/openssl-client.c",
     "//third_party/libwebsockets/lib/tls/openssl/openssl-server.c",
     "//third_party/libwebsockets/lib/tls/openssl/openssl-session.c",
@@ -107,7 +109,7 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/include/libwebsockets/abstract",
     "//third_party/libwebsockets/include/libwebsockets/abstract/protocols",
 
-    #################################################
+    ################################################
     "//third_party/libwebsockets/lib",
     "//third_party/libwebsockets/lib/plat",
     "//third_party/libwebsockets/lib/plat/windows",
