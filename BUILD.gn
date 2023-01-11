@@ -367,5 +367,5 @@ ohos_static_library("websocket_static") {
     ]
   }
   config = [ ":websocket_config" ]
-  public_config = [ ":websockets_public_config" ]
+  public_configs = [ ":websockets_public_config" ]
 }
