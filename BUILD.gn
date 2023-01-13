@@ -366,6 +366,6 @@ ohos_static_library("websocket_static") {
       "//third_party/libwebsockets/lib/plat/unix/unix-sockets.c",
     ]
   }
-  config = [ ":websocket_config" ]
+  configs = [ ":websocket_config" ]
   public_configs = [ ":websockets_public_config" ]
 }
