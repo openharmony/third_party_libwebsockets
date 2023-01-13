@@ -229,7 +229,7 @@ ohos_static_library("websockets") {
 config("websocket_config") {
   cflags = [
     "-Wall",
-    "-Wsign-compqre",
+    "-Wsign-compare",
     "-Wstrict-aliasing",
     "-Wuninitialized",
     "-fvisibility=hidden",
