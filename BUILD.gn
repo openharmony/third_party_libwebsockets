@@ -352,7 +352,7 @@ ohos_static_library("websocket_static") {
       "//third_party/libwebsockets/lib/plat/windows/windows-service.c",
       "//third_party/libwebsockets/lib/plat/windows/windows-socket.c",
     ]
-  } else if (platform == platform == "mac_arm64" || platform == "mac_x64" ||
+  } else if (platform == "mac_arm64" || platform == "mac_x64" ||
              platform == "linux_x64") {
     defines = [ "LWS_HAVE_SYS_RESOURCE_H" ]
     sources += [
