@@ -194,10 +194,10 @@ config("websockets_public_config") {
   } else {
     include_dirs += [ "//third_party/libwebsockets/lib/plat/unix" ]
   }
-  cflags = [ "-Wno-error=warnings" ]
+  cflags = [ "-Wno-error=#warnings" ]
 }
 
-ohos_static_library("websocket_static") {
+ohos_static_library("websockets_static") {
   sources = [
     "//third_party/libwebsockets/lib/core-net/adopt.c",
     "//third_party/libwebsockets/lib/core-net/client.c",
