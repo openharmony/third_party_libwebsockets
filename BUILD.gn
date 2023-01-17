@@ -107,7 +107,7 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/include/libwebsockets/abstract",
     "//third_party/libwebsockets/include/libwebsockets/abstract/protocols",
 
-    ################################################
+    #################################################
     "//third_party/libwebsockets/lib",
     "//third_party/libwebsockets/lib/plat",
     "//third_party/libwebsockets/lib/plat/windows",
@@ -283,10 +283,10 @@ config("websockets_public_config") {
              platform == "linux_x64") {
     include_dirs += [ "//third_party/libwebsockets/lib/plat/unix" ]
   }
-  cflags = [ "-Wno-error=warnings" ]
+  cflags = [ "-Wno-error=#warnings" ]
 }
 
-ohos_static_library("websocket_static") {
+ohos_static_library("websockets_static") {
   sources = [
     "//third_party/libwebsockets/lib/core-net/adopt.c",
     "//third_party/libwebsockets/lib/core-net/client/client.c",
@@ -350,7 +350,7 @@ ohos_static_library("websocket_static") {
       "//third_party/libwebsockets/lib/plat/windows/windows-pipe.c",
       "//third_party/libwebsockets/lib/plat/windows/windows-plugins.c",
       "//third_party/libwebsockets/lib/plat/windows/windows-service.c",
-      "//third_party/libwebsockets/lib/plat/windows/windows-socket.c",
+      "//third_party/libwebsockets/lib/plat/windows/windows-sockets.c",
     ]
   } else if (platform == "mac_arm64" || platform == "mac_x64" ||
              platform == "linux_x64") {
