@@ -212,8 +212,8 @@
 /* Define to 1 if you have the <string.h> header file. */
 #define LWS_HAVE_STRING_H
 
-/* Define to 1 if you have the <string.h> header file. */
-/* #define LWS_HAVE_STRING_H */
+/* Define to 1 if you have the <sys/prctl.h> header file. */
+/* #define LWS_HAVE_SYS_PRCTL_H */
 
 /* Define to 1 if you have the <sys/socket.h> header file. */
 #define LWS_HAVE_SYS_SOCKET_H

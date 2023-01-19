@@ -222,7 +222,7 @@
 /* #undef LWS_LIBRARY_VERSION_NUMBER */
 
 /* #undef LWS_AVOID_SIGPIPE_IGN */
-/* #UNdef LWS_BUILD_HASH */
+/* #undef LWS_BUILD_HASH */
 /* #undef LWS_BUILTIN_GETIFADDRS */
 #define LWS_CLIENT_HTTP_PROXYING
 /* #undef LWS_FALLBACK_GETHOSTBYNAME */
@@ -246,11 +246,11 @@
 #define LWS_HAVE_EXECVPE
 
 /* #if !define(WIN32) && !define(_WIN32) */
-/* #undef LWS_HAVE_LIBCAP */
-/* #undef LWS_HAVE_EVENTFD */
-/* #undef LWS_HAVE_SYS_CAPABILITY_H */
-/* #undef LWS_HAVE_MALLOC_USABLE_SIZE */
-/* #undef LWS_WITH_TLS */
+/* #define LWS_HAVE_LIBCAP */
+/* #define LWS_HAVE_EVENTFD */
+/* #define LWS_HAVE_SYS_CAPABILITY_H */
+/* #define LWS_HAVE_MALLOC_USABLE_SIZE */
+/* #define LWS_WITH_TLS */
 /* #endif */
 
 #define LWS_HAVE_HMAC_CTX_new
@@ -266,7 +266,7 @@
 /* #undef LWS_HAVE_MBEDTLS_NET_SOCKETS */
 /* #undef LWS_HAVE_NEW_UV_VERSION_H */
 #define LWS_HAVE_OPENSSL_ECDH_H
-/* #undef LWS_HAVE_PIPE2 */
+/* #define LWS_HAVE_PIPE2 */
 #define LWS_HAVE_PTHREAD_H
 #define LWS_HAVE_RSA_SET0_KEY
 #define LWS_HAVE_RSA_verify_pss_mgf1
@@ -332,7 +332,6 @@
 #define LWS_WITH_HTTP2
 #define LWS_WITH_HTTP_BASIC_AUTH
 /* #undef LWS_WITH_HTTP_BROTLI */
-/* #undef LWS_HTTP_HEADERS_ALL */
 /* #undef LWS_WITH_HTTP_PROXY */
 /* #undef LWS_WITH_HTTP_STREAM_COMPRESSION */
 #define LWS_WITH_HTTP_UNCOMMON_HEADERS
@@ -352,7 +351,7 @@
 #define LWS_WITHOUT_EXTENSIONS
 #define LWS_WITH_SERVER
 /* #undef LWS_WITH_SPAWN */
-#define LWS_WITH_PEER_LIMITS 
+#undef LWS_WITH_PEER_LIMITS 
 /* #undef LWS_WITH_PLUGINS */
 /* #undef LWS_WITH_POLARSSL */
 #define LWS_WITH_POLL
