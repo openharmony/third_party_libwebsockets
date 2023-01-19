@@ -205,7 +205,10 @@ ohos_static_library("websockets") {
     "//third_party/glib",
   ]
 
-  defines = [ "OHOS_LIBWEBSOCKETS=1" ]
+  defines = [
+    "OHOS_LIBWEBSOCKETS=1",
+    "OPENSSL_SUPPRESS_DEPRECATED",
+  ]
 
   cflags = [
     "-fPIC",
@@ -220,8 +223,8 @@ ohos_static_library("websockets") {
   ]
 
   deps = [
-    "//third_party/openssl:libcrypto_static",
-    "//third_party/openssl:ssl_source",
+    "//third_party/openssl:libcrypto_shared",
+    "//third_party/openssl:libssl_shared",
     "//third_party/zlib:libz",
   ]
 }
