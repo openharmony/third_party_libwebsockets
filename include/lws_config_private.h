@@ -71,8 +71,10 @@
 /* Define to 1 if you have the <string.h> header file. */
 #define LWS_HAVE_STRING_H
 
+#if !defined (CROSS_PLATFORM_IOS_LIBWEBSOCKETS)
 /* Define to 1 if you have the <sys/prctl.h> header file. */
 #define LWS_HAVE_SYS_PRCTL_H
+#endif
 
 /* Define to 1 if you have the <sys/resource.h> header file. */
 #define LWS_HAVE_SYS_RESOURCE_H
