@@ -89,7 +89,9 @@
 #define LWS_HAVE_HMAC_CTX_new
 #define LWS_HAVE_MALLOC_H
 #define LWS_HAVE_MALLOC_TRIM
+#if !defined (CROSS_PLATFORM_IOS_LIBWEBSOCKETS)
 #define LWS_HAVE_MALLOC_USABLE_SIZE
+#endif
 /* #undef LWS_HAVE_mbedtls_md_setup */
 /* #undef LWS_HAVE_mbedtls_net_init */
 /* #undef LWS_HAVE_mbedtls_rsa_complete */
@@ -107,8 +109,10 @@
 /* #undef LWS_HAVE_NEW_UV_VERSION_H */
 #define LWS_HAVE_OPENSSL_ECDH_H
 #define LWS_HAVE_OPENSSL_STACK
+#if !defined (CROSS_PLATFORM_IOS_LIBWEBSOCKETS)
 #define LWS_HAVE_PIPE2
 #define LWS_HAVE_EVENTFD
+#endif
 #define LWS_HAVE_PTHREAD_H
 #define LWS_HAVE_RSA_SET0_KEY
 /* #undef LWS_HAVE_RSA_verify_pss_mgf1 */
@@ -207,7 +211,9 @@
 #define LWS_LOGS_TIMESTAMP
 /* #undef LWS_WITH_MBEDTLS */
 /* #undef LWS_WITH_MINIZ */
+#if !defined (CROSS_PLATFORM_IOS_LIBWEBSOCKETS)
 #define LWS_WITH_NETLINK
+#endif
 #define LWS_WITH_NETWORK
 /* #undef LWS_WITH_NO_LOGS */
 #define LWS_WITH_CACHE_NSCOOKIEJAR
