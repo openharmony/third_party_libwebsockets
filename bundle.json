@@ -15,9 +15,9 @@
     "subsystem": "thirdparty",
     "syscap": [],
     "features": [],
-    "adapted_system_type": [],
-    "rom": "",
-    "ram": "",
+    "adapted_system_type": [ "standard" ],
+    "rom": "319k",
+    "ram": "13865k",
     "deps": {
       "components": [],
       "third_party": [
