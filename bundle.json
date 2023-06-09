@@ -12,7 +12,7 @@
   "licensePath": "COPYING",
   "component": {
     "name": "libwebsockets",
-    "subsystem": "netmanager",
+    "subsystem": "thirdparty",
     "syscap": [],
     "features": [],
     "adapted_system_type": [ "standard" ],
