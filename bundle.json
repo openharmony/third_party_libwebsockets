@@ -1,7 +1,7 @@
 {
   "name": "@ohos/libwebsockets",
   "description": "Libwebsockets is a simple-to-use, MIT-license, pure C library providing client and server for http/1, http/2, websockets, MQTT and other protocols in a security-minded, lightweight, configurable, scalable and flexible way.",
-  "version": "v4.3.1",
+  "version": "3.1",
   "license": "Apache V2.0",
   "publishAs": "code-segment",
   "segment": {
@@ -12,12 +12,12 @@
   "licensePath": "COPYING",
   "component": {
     "name": "libwebsockets",
-    "subsystem": "thirdparty",
+    "subsystem": "netmanager",
     "syscap": [],
     "features": [],
     "adapted_system_type": [ "standard" ],
-    "rom": "319k",
-    "ram": "13865k",
+    "rom": "319KB",
+    "ram": "13865KB",
     "deps": {
       "components": [],
       "third_party": [
