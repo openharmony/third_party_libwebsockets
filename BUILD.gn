@@ -103,6 +103,9 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/lib/tls/tls.c",
   ]
 
+  part_name = "libwebsockets"
+  subsystem_name = "thirdparty"
+
   if (target_os != "ios") {
     sources += [
       "//third_party/libwebsockets/lib/core-net/route.c",
@@ -396,8 +399,6 @@ ohos_static_library("websockets_static") {
       "//third_party/libwebsockets/lib/plat/unix/unix-sockets.c",
     ]
   }
-  part_name = "libwebsockets"
-  subsystem_name = "thirdparty"
   configs = [ ":websocket_config" ]
   public_configs = [ ":websockets_public_config" ]
 }
