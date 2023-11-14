@@ -244,19 +244,11 @@ ohos_static_library("websockets") {
     "-pipe",
   ]
 
-  deps = [ "//third_party/zlib:libz" ]
-
-  if (target_os == "ios") {
-    deps += [
-      "//third_party/openssl:libcrypto_static",
-      "//third_party/openssl:ssl_source",
-    ]
-  } else {
-    deps += [
-      "//third_party/openssl:libcrypto_shared",
-      "//third_party/openssl:libssl_shared",
-    ]
-  }
+  deps = [
+    "//third_party/openssl:libcrypto_shared",
+    "//third_party/openssl:libssl_shared",
+    "//third_party/zlib:libz",
+  ]
 }
 
 config("websocket_config") {
