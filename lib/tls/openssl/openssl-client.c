@@ -952,15 +952,29 @@ lws_tls_client_create_vhost_context(struct lws_vhost *vh,
 		SSL_CTX_set_default_verify_paths(vh->tls.ssl_client_ctx);
 #endif
 
-	/* openssl init for cert verification (for client sockets) */
-	if (!ca_filepath && (!ca_mem || !ca_mem_len)) {
+    /* openssl init for cert verification (for client sockets) */
+    if (!ca_mem || !ca_mem_len)
+	{
+		for (size_t i = 0; i < 9; i++)
+		{
+			if (!SSL_CTX_load_verify_locations(vh->tls.ssl_client_ctx, NULL, info->client_ssl_ca_dirs[i]))
+			{
+			    lwsl_err(
+                "Unable to load SSL Client certs from %s "
+                "(set by info->client_ssl_ca_dirs[%d]) -- "
+                "client ssl isn't going to work\n",
+				info->client_ssl_ca_dirs[i],i); 
+			}
+		}
+	}
+	
+    if (!ca_filepath && (!ca_mem || !ca_mem_len)) {
 #if defined(LWS_HAVE_SSL_CTX_load_verify_dir)
 		if (!SSL_CTX_load_verify_dir(
 			vh->tls.ssl_client_ctx, LWS_OPENSSL_CLIENT_CERTS))
 #else
-        if (!SSL_CTX_load_verify_locations(vh->tls.ssl_client_ctx, NULL, info->client_ssl_ca_dirs[0]) ||
-            !SSL_CTX_load_verify_locations(vh->tls.ssl_client_ctx, NULL, info->client_ssl_ca_dirs[1]))
-
+		if (!SSL_CTX_load_verify_locations(
+			vh->tls.ssl_client_ctx, NULL, LWS_OPENSSL_CLIENT_CERTS))
 #endif
 			lwsl_err("Unable to load SSL Client certs from %s "
 			    "(set by LWS_OPENSSL_CLIENT_CERTS) -- "
