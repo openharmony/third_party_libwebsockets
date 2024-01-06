@@ -958,8 +958,9 @@ lws_tls_client_create_vhost_context(struct lws_vhost *vh,
 		if (!SSL_CTX_load_verify_dir(
 			vh->tls.ssl_client_ctx, LWS_OPENSSL_CLIENT_CERTS))
 #else
-		if (!SSL_CTX_load_verify_locations(
-			vh->tls.ssl_client_ctx, NULL, LWS_OPENSSL_CLIENT_CERTS))
+        if (!SSL_CTX_load_verify_locations(vh->tls.ssl_client_ctx, NULL, info->client_ssl_ca_dirs[0]) ||
+            !SSL_CTX_load_verify_locations(vh->tls.ssl_client_ctx, NULL, info->client_ssl_ca_dirs[1]))
+
 #endif
 			lwsl_err("Unable to load SSL Client certs from %s "
 			    "(set by LWS_OPENSSL_CLIENT_CERTS) -- "
