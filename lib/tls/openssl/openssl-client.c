@@ -965,7 +965,6 @@ lws_tls_client_create_vhost_context(struct lws_vhost *vh,
         }
     }
 
-	
 	if (!ca_filepath && (!ca_mem || !ca_mem_len)) {
 #if defined(LWS_HAVE_SSL_CTX_load_verify_dir)
 		if (!SSL_CTX_load_verify_dir(
