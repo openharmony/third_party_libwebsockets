@@ -952,7 +952,7 @@ lws_tls_client_create_vhost_context(struct lws_vhost *vh,
 		SSL_CTX_set_default_verify_paths(vh->tls.ssl_client_ctx);
 #endif
 
-    /* openssl init for cert verification (for client sockets) */
+	/* openssl init for cert verification (for client sockets) */
     if (!ca_mem || !ca_mem_len)
 	{
 		for (size_t i = 0; i < 9; i++)
@@ -968,7 +968,7 @@ lws_tls_client_create_vhost_context(struct lws_vhost *vh,
 		}
 	}
 	
-    if (!ca_filepath && (!ca_mem || !ca_mem_len)) {
+	if (!ca_filepath && (!ca_mem || !ca_mem_len)) {
 #if defined(LWS_HAVE_SSL_CTX_load_verify_dir)
 		if (!SSL_CTX_load_verify_dir(
 			vh->tls.ssl_client_ctx, LWS_OPENSSL_CLIENT_CERTS))
