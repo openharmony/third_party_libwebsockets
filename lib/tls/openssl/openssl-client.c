@@ -957,14 +957,13 @@ lws_tls_client_create_vhost_context(struct lws_vhost *vh,
 	/* openssl init for cert verification (for client sockets) */
     if (!ca_mem || !ca_mem_len) {
         for (size_t i = 0; i < MAX_CLIENT_SSL_CA_NUMBER; i++) {
-            if (info->client_ssl_ca_dirs[i] != NULL) {
-                if (!SSL_CTX_load_verify_locations(vh->tls.ssl_client_ctx, NULL, info->client_ssl_ca_dirs[i])) {
-                    lwsl_err(
-                        "Unable to load SSL Client certs from %s "
-                        "(set by info->client_ssl_ca_dirs[%d]) -- "
-                        "client ssl isn't going to work\n",
-                        info->client_ssl_ca_dirs[i], i);
-                }
+            if ((info->client_ssl_ca_dirs[i] != NULL) &&
+                (!SSL_CTX_load_verify_locations(vh->tls.ssl_client_ctx, NULL, info->client_ssl_ca_dirs[i]))) {
+                lwsl_err(
+                    "Unable to load SSL Client certs from %s "
+                    "(set by info->client_ssl_ca_dirs[%d]) -- "
+                    "client ssl isn't going to work\n",
+                    info->client_ssl_ca_dirs[i], i);
             }
         }
     }
