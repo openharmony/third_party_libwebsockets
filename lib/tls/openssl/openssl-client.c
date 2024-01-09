@@ -956,7 +956,7 @@ lws_tls_client_create_vhost_context(struct lws_vhost *vh,
 
 	/* openssl init for cert verification (for client sockets) */
     if (!ca_mem || !ca_mem_len) {
-        for (size_t i = 0; i < MAX_CLIENT_SSL_CA_NUMBER; i++) {
+        for (int i = 0; i < MAX_CLIENT_SSL_CA_NUMBER; i++) {
             if ((info->client_ssl_ca_dirs[i] != NULL) &&
                 (!SSL_CTX_load_verify_locations(vh->tls.ssl_client_ctx, NULL, info->client_ssl_ca_dirs[i]))) {
                 lwsl_err(
