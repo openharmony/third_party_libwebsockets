@@ -503,7 +503,7 @@ struct lws_context_creation_info {
 	const char *client_ssl_ca_filepath;
 	/**< VHOST: Client SSL context init: CA certificate filepath or NULL */
         const char *client_ssl_ca_dirs[10];
-	/**< VHOST: Client SSL context init: CA certificate path */
+	/**< VHOST: Client SSL context init: CA certificate path or NULL */
 	const void *client_ssl_ca_mem;
 	/**< VHOST: Client SSL context init: CA certificate memory buffer or
 	 * NULL... use this to load CA cert from memory instead of file */
