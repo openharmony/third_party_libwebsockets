@@ -38,7 +38,8 @@ set(LWS_LIB_INCLUDES "")
 if (LWS_PLAT_FREERTOS)
 	add_subdir_include_dirs(plat/freertos)
 	if (ESP_PLATFORM)
-		include_directories($ENV{IDF_PATH}/components/freertos/include
+		list(APPEND LWS_ESP_IDF_DIRS
+		    $ENV{IDF_PATH}/components/freertos/include
 		    $ENV{IDF_PATH}/components/esp_hw_support/include/soc/
 		    $ENV{IDF_PATH}/components/esp_common/include
 		    $ENV{IDF_PATH}/components/esp_timer/include
@@ -71,7 +72,12 @@ if (LWS_PLAT_FREERTOS)
 		    $ENV{IDF_PATH}/components/lwip/lwip/src/include
 		    $ENV{IDF_PATH}/components/lwip/lwip/src/include/lwip
 		    $ENV{IDF_PATH}/components/newlib/platform_include )
+
+		    include_directories(${LWS_ESP_IDF_DIRS})
+
+		    list(APPEND CMAKE_REQUIRED_INCLUDES ${LWS_ESP_IDF_DIRS})
 	endif()
+
 	
 else()
 	if (LWS_PLAT_OPTEE)
@@ -334,7 +340,7 @@ Name: libwebsockets_static
 Description: Websockets server and client static library
 Version: ${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}
 
-Libs: -L\${libdir} -lwebsockets_static
+Libs: -L\${libdir} -l:libwebsockets${CMAKE_STATIC_LIBRARY_SUFFIX}
 Libs.private:
 Cflags: -I\${includedir}
 "
@@ -362,6 +368,8 @@ if (DEFINED LWS_PLAT_UNIX)
 	endif()
 endif()
 set(LWS_HAVE_MBEDTLS_NET_SOCKETS ${LWS_HAVE_MBEDTLS_NET_SOCKETS} PARENT_SCOPE)
+set(LWS_HAVE_MBEDTLS_SSL_NEW_SESSION_TICKET ${LWS_HAVE_MBEDTLS_SSL_NEW_SESSION_TICKET} PARENT_SCOPE)
+set(LWS_HAVE_mbedtls_ssl_conf_alpn_protocols ${LWS_HAVE_mbedtls_ssl_conf_alpn_protocols} PARENT_SCOPE)
 set(TEST_SERVER_SSL_KEY "${TEST_SERVER_SSL_KEY}" PARENT_SCOPE)
 set(TEST_SERVER_SSL_CERT "${TEST_SERVER_SSL_CERT}" PARENT_SCOPE)
 set(TEST_SERVER_DATA ${TEST_SERVER_DATA} PARENT_SCOPE)
