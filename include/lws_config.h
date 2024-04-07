@@ -198,6 +198,7 @@
 /* #undef LWS_WITH_HTTP_PROXY */
 /* #undef LWS_WITH_HTTP_STREAM_COMPRESSION */
 #define LWS_WITH_HTTP_UNCOMMON_HEADERS
+#define LWS_WITH_IPV6
 /* #undef LWS_WITH_IPV6 */
 /* #undef LWS_WITH_JOSE */
 /* #undef LWS_WITH_CBOR */
