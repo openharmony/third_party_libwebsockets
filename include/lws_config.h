@@ -50,7 +50,7 @@
 /* #undef LWS_EXT_PTHREAD_LIBRARIES */
 
 /* #undef LWS_AVOID_SIGPIPE_IGN */
-#define LWS_BUILD_HASH "OpenHarmony-v3.1.1-Release-1063-g7c0dfa64"
+#define LWS_BUILD_HASH "OpenHarmony-v4.3.3"
 /* #undef LWS_BUILTIN_GETIFADDRS */
 #define LWS_CLIENT_HTTP_PROXYING
 /* #undef LWS_DETECTED_PLAT_IOS */
@@ -139,7 +139,7 @@
 #define LWS_HAVE_VFORK
 #define LWS_HAVE_X509_get_key_usage
 #define LWS_HAVE_X509_VERIFY_PARAM_set1_host
-#define LWS_LIBRARY_VERSION "4.3.3-OpenHarmony-v3.1.1-Release-1063-g7c0dfa64"
+#define LWS_LIBRARY_VERSION "4.3.3-OpenHarmony"
 #define LWS_LOGGING_BITFIELD_CLEAR 0
 #define LWS_LOGGING_BITFIELD_SET 0
 #define LWS_LOG_TAG_LIFECYCLE
