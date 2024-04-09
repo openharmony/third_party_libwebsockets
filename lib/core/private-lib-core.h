@@ -34,6 +34,12 @@
  #define  _GNU_SOURCE
 #endif
 
+#if defined(LWS_SUPPRESS_DEPRECATED_API_WARNINGS)
+#ifndef OPENSSL_SUPPRESS_DEPRECATED
+#define OPENSSL_SUPPRESS_DEPRECATED
+#endif
+#endif
+
 /*
 #if !defined(_POSIX_C_SOURCE)
 #define _POSIX_C_SOURCE 200112L
@@ -625,7 +631,7 @@ struct lws_context {
 	mbedtls_ctr_drbg_context mcdc;
 #endif
 
-#if defined(LWS_WITH_THREADPOOL)
+#if defined(LWS_WITH_THREADPOOL) && defined(LWS_HAVE_PTHREAD_H)
 	struct lws_threadpool *tp_list_head;
 #endif
 
