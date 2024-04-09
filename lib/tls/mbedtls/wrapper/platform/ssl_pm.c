@@ -98,7 +98,6 @@ static void ssl_platform_debug(void *ctx, int level,
 }
 //#endif
 
-#if defined(LWS_HAVE_mbedtls_ssl_set_verify)
 static int
 lws_mbedtls_f_vrfy(void *opaque, mbedtls_x509_crt *x509, int state, uint32_t *pflags)
 {
@@ -109,7 +108,6 @@ lws_mbedtls_f_vrfy(void *opaque, mbedtls_x509_crt *x509, int state, uint32_t *pf
 
 	return 0;
 }
-#endif
 
 /**
  * @brief create SSL low-level object
@@ -151,6 +149,8 @@ int ssl_pm_new(SSL *ssl)
 
 #if defined(LWS_HAVE_mbedtls_ssl_set_verify)
     mbedtls_ssl_set_verify(&ssl_pm->ssl, lws_mbedtls_f_vrfy, ssl_pm);
+#else
+    mbedtls_ssl_conf_verify(&ssl_pm->conf, lws_mbedtls_f_vrfy, ssl_pm);
 #endif
 
     ret = mbedtls_ctr_drbg_seed(&ssl_pm->ctr_drbg, mbedtls_entropy_func, &ssl_pm->entropy, pers, pers_len);
@@ -183,7 +183,12 @@ int ssl_pm_new(SSL *ssl)
         mbedtls_ssl_conf_min_version(&ssl_pm->conf, MBEDTLS_SSL_MAJOR_VERSION_3, version);
     } else {
         mbedtls_ssl_conf_max_version(&ssl_pm->conf, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3);
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2)
+        mbedtls_ssl_conf_min_version(&ssl_pm->conf, MBEDTLS_SSL_MAJOR_VERSION_3, MBEDTLS_SSL_MINOR_VERSION_3);
+#else
         mbedtls_ssl_conf_min_version(&ssl_pm->conf, MBEDTLS_SSL_MAJOR_VERSION_3, 1);
+#endif
     }
 
     mbedtls_ssl_conf_rng(&ssl_pm->conf, mbedtls_ctr_drbg_random, &ssl_pm->ctr_drbg);
@@ -499,14 +504,13 @@ void ssl_pm_set_fd(SSL *ssl, int fd, int mode)
 {
     struct ssl_pm *ssl_pm = (struct ssl_pm *)ssl->ssl_pm;
 
-    ssl_pm->fd.MBEDTLS_PRIVATE(fd) = fd;
+    ssl_pm->fd.MBEDTLS_PRIVATE_V30_ONLY(fd) = fd;
 }
 
 int ssl_pm_get_fd(const SSL *ssl, int mode)
 {
     struct ssl_pm *ssl_pm = (struct ssl_pm *)ssl->ssl_pm;
-
-    return ssl_pm->fd.MBEDTLS_PRIVATE(fd);
+    return ssl_pm->fd.MBEDTLS_PRIVATE_V30_ONLY(fd);
 }
 
 OSSL_HANDSHAKE_STATE ssl_pm_get_state(const SSL *ssl)
@@ -550,7 +554,11 @@ OSSL_HANDSHAKE_STATE ssl_pm_get_state(const SSL *ssl)
         case MBEDTLS_SSL_SERVER_KEY_EXCHANGE:
             state = TLS_ST_SR_KEY_EXCH;
             break;
+#if defined(LWS_HAVE_MBEDTLS_SSL_NEW_SESSION_TICKET)
+        case MBEDTLS_SSL_NEW_SESSION_TICKET:
+#else
         case MBEDTLS_SSL_SERVER_NEW_SESSION_TICKET:
+#endif
             state = TLS_ST_SW_SESSION_TICKET;
             break;
         case MBEDTLS_SSL_SERVER_HELLO_VERIFY_REQUEST_SENT:
@@ -660,7 +668,7 @@ int x509_pm_load(X509 *x, const unsigned char *buffer, int len)
     struct x509_pm *x509_pm = (struct x509_pm *)x->x509_pm;
 
     if (!x509_pm->x509_crt) {
-        x509_pm->x509_crt = ssl_mem_malloc(sizeof(mbedtls_x509_crt));
+        x509_pm->x509_crt = ssl_mem_malloc(sizeof(mbedtls_x509_crt) + 80);
         if (!x509_pm->x509_crt) {
             SSL_DEBUG(SSL_PLATFORM_ERROR_LEVEL, "no enough memory > (x509_pm->x509_crt)");
             goto no_mem;
@@ -762,8 +770,13 @@ int pkey_pm_load(EVP_PKEY *pk, const unsigned char *buffer, int len)
     mbedtls_pk_init(pkey_pm->pkey);
 
 #if defined(MBEDTLS_VERSION_NUMBER) && MBEDTLS_VERSION_NUMBER >= 0x03000000
+#if defined(MBEDTLS_VERSION_NUMBER) && MBEDTLS_VERSION_NUMBER >= 0x03050000
+    ret = mbedtls_pk_parse_key(pkey_pm->pkey, load_buf, (unsigned int)len, NULL, 0,
+		    mbedtls_ctr_drbg_random, pkey_pm->rngctx);
+#else
     ret = mbedtls_pk_parse_key(pkey_pm->pkey, load_buf, (unsigned int)len + 1, NULL, 0,
 		    mbedtls_ctr_drbg_random, pkey_pm->rngctx);
+#endif
 #else
     ret = mbedtls_pk_parse_key(pkey_pm->pkey, load_buf, (unsigned int)len + 1, NULL, 0);
 #endif
@@ -874,6 +887,8 @@ void _ssl_set_alpn_list(const SSL *ssl)
 		return;
 	if (mbedtls_ssl_conf_alpn_protocols(&((struct ssl_pm *)(ssl->ssl_pm))->conf, ssl->ctx->alpn_protos))
 		fprintf(stderr, "mbedtls_ssl_conf_alpn_protocols failed\n");
+#else
+	fprintf(stderr, "mbedtls_ssl_conf_alpn_protocols absent\n");
 #endif
 }
 
@@ -889,6 +904,7 @@ void SSL_get0_alpn_selected(const SSL *ssl, const unsigned char **data,
 	else
 		*len = 0;
 #else
+	fprintf(stderr, "mbedtls_ssl_conf_alpn_protocols absent\n");
 	*len = 0;
 #endif
 }

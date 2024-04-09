@@ -41,10 +41,6 @@ extern "C" {
 
 #include "lws_config.h"
 
-#if defined(LWS_SUPPRESS_DEPRECATED_API_WARNINGS)
-#define OPENSSL_USE_DEPRECATED
-#endif
-
 /* place for one-shot opaque forward references */
 
 typedef struct lws_context * lws_ctx_t;
@@ -291,9 +287,16 @@ typedef int suseconds_t;
 #include <mbedtls/ssl.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/ctr_drbg.h>
+#include <mbedtls/version.h>
 
 #if !defined(MBEDTLS_PRIVATE)
 #define MBEDTLS_PRIVATE(_q) _q
+#endif
+
+#if (MBEDTLS_VERSION_MAJOR == 3) && (MBEDTLS_VERSION_MINOR == 0)
+#define MBEDTLS_PRIVATE_V30_ONLY(_q) MBEDTLS_PRIVATE(_q)
+#else
+#define MBEDTLS_PRIVATE_V30_ONLY(_q) _q
 #endif
 
 #endif

@@ -248,12 +248,13 @@ lws_apply_metadata(lws_ss_handle_t *h, struct lws *wsi, uint8_t *buf,
 	}
 
 	/*
-	 * Content-length on POST / PUT if we have the length information
+	 * Content-length on POST / PUT / PATCH if we have the length information
 	 */
 
 	if (h->policy->u.http.method && (
 		(!strcmp(h->policy->u.http.method, "POST") ||
-	         !strcmp(h->policy->u.http.method, "PUT"))) &&
+		 !strcmp(h->policy->u.http.method, "PATCH") ||
+		 !strcmp(h->policy->u.http.method, "PUT"))) &&
 	    wsi->http.writeable_len) {
 		if (!(h->policy->flags &
 			LWSSSPOLF_HTTP_NO_CONTENT_LENGTH)) {
@@ -283,7 +284,7 @@ lws_apply_instant_metadata(lws_ss_handle_t *h, struct lws *wsi, uint8_t *buf,
 			lwsl_debug("%s add header %s %s %d\n", __func__,
 					           imd->name,
 			                           (char *)imd->value__may_own_heap,
-						   imd->length);
+						   (int)imd->length);
 			if (lws_add_http_header_by_name(wsi,
 					(const unsigned char *)imd->name,
 					(const unsigned char *)imd->value__may_own_heap,
@@ -313,7 +314,7 @@ static int
 lws_extract_metadata(lws_ss_handle_t *h, struct lws *wsi)
 {
 	lws_ss_metadata_t *polmd = h->policy->metadata, *omd;
-	int n, m = 0;
+	int n;
 
 	while (polmd) {
 
@@ -410,7 +411,6 @@ lws_extract_metadata(lws_ss_handle_t *h, struct lws *wsi)
 			}
 #endif
 
-		m++;
 		polmd = polmd->next;
 	}
 
@@ -467,16 +467,17 @@ secstream_h1(struct lws *wsi, enum lws_callback_reasons reason, void *user,
 			r = lws_ss_event_helper(h, LWSSSCS_DISCONNECTED);
 			if (r != LWSSSSRET_OK)
 				return _lws_ss_handle_state_ret_CAN_DESTROY_HANDLE(r, wsi, &h);
-		}
-		/* already disconnected, no action for DISCONNECT_ME */
-		r = lws_ss_event_helper(h, LWSSSCS_UNREACHABLE);
-		if (r) {
-			if (h->inside_connect) {
-				h->pending_ret = r;
-				break;
-			}
+		} else {
+			/* already disconnected, no action for DISCONNECT_ME */
+			r = lws_ss_event_helper(h, LWSSSCS_UNREACHABLE);
+			if (r) {
+				if (h->inside_connect) {
+					h->pending_ret = r;
+					break;
+				}
 
-			return _lws_ss_handle_state_ret_CAN_DESTROY_HANDLE(r, wsi, &h);
+				return _lws_ss_handle_state_ret_CAN_DESTROY_HANDLE(r, wsi, &h);
+			}
 		}
 
 		h->wsi = NULL;
@@ -560,6 +561,8 @@ secstream_h1(struct lws *wsi, enum lws_callback_reasons reason, void *user,
 			return -1;
 
 		lws_ss_assert_extant(wsi->a.context, wsi->tsi, h);
+		h->wsi = wsi; /* since we accept the wsi is bound to the SS,
+			       * ensure the SS feels the same way about the wsi */
 
 #if defined(LWS_WITH_CONMON)
 		if (wsi->conmon.pcol == LWSCONMON_PCOL_NONE) {
@@ -828,6 +831,7 @@ malformed:
 		     h->policy->protocol == LWSSSP_H2) &&
 		     h->being_serialized && (
 				!strcmp(h->policy->u.http.method, "PUT") ||
+				!strcmp(h->policy->u.http.method, "PATCH") ||
 				!strcmp(h->policy->u.http.method, "POST"))) {
 
 			wsi->client_suppress_CONNECTION_ERROR = 1;
@@ -863,6 +867,8 @@ malformed:
 	//	lwsl_notice("%s: HTTP_READ: client side sent len %d fl 0x%x\n",
 	//		    __func__, (int)len, (int)f);
 
+		h->wsi = wsi; /* since we accept the wsi is bound to the SS,
+			       * ensure the SS feels the same way about the wsi */
 		r = h->info.rx(ss_to_userobj(h), (const uint8_t *)in, len, f);
 		if (r != LWSSSSRET_OK)
 			return _lws_ss_handle_state_ret_CAN_DESTROY_HANDLE(r, wsi, &h);
@@ -1091,6 +1097,16 @@ malformed:
 							return -1;
 						if (lws_ss_alloc_set_metadata(h, "method", "POST", 4))
 							return -1;
+					} else {
+						m = lws_hdr_total_length(wsi, WSI_TOKEN_PATCH_URI);
+						if (m) {
+							if (lws_ss_alloc_set_metadata(h, "path",
+									lws_hdr_simple_ptr(wsi,
+										WSI_TOKEN_PATCH_URI), (unsigned int)m))
+								return -1;
+							if (lws_ss_alloc_set_metadata(h, "method", "PATCH", 5))
+								return -1;
+						}
 					}
 				}
 			}
