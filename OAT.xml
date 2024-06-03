@@ -84,12 +84,12 @@
                 <filteritem type="filename" name="*.exe" desc="Ignore this file, we do not use it."/>
                 <filteritem type="filename" name="*.pem" desc="Ignore this file, we do not use it."/>
                 <filteritem type="filename" name="*.bin" desc="Ignore this file, we do not use it."/>
-                <filteritem type="filename" name="minimal-examples/crypto/minimal-crypto-cose-sign/*.sig" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
-                <filteritem type="filename" name="minimal-examples/crypto/minimal-crypto-cose-key/*.sig" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
-                <filteritem type="filename" name="minimal-examples/embedded/esp32/esp-heltec-wb32/scan/scan" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
-                <filteritem type="filename" name="minimal-examples/embedded/esp32/esp-heltec-wb32/scan/output.bmp" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
-                <filteritem type="filename" name="minimal-examples/crypto/minimal-crypto-cose-key/set1.cks" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
-                <filteritem type="filename" name="minimal-examples/crypto/minimal-crypto-cose-sign/set1.cks" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
+                <filteritem type="filename" name="*.sig" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
+                <filteritem type="filepath" name="minimal-examples/embedded/esp32/esp-heltec-wb32/scan/scan" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
+                <filteritem type="filepath" name="minimal-examples/embedded/esp32/esp-heltec-wb32/scan/output.bmp" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
+                <filteritem type="filepath" name="minimal-examples/crypto/minimal-crypto-cose-key/set1.cks" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
+                <filteritem type="filepath" name="minimal-examples/crypto/minimal-crypto-cose-sign/set1.cks" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
+                <filteritem type="filepath" name="minimal-examples/crypto/minimal-crypto-cose-sign/rsa-4096.ck" desc="Ignore this file, For testing examples provided by third-party open-source sources only."/>
             </filefilter>
             <filefilter name="defaultFilter" desc="">
                 <filteritem type="filename" name="lws-mqtt.h" desc="Ignore this file, we do not use it."/>
