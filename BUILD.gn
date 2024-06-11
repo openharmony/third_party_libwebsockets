@@ -301,6 +301,7 @@ config("websockets_public_config") {
     "//third_party/libwebsockets/lib",
     "//third_party/libwebsockets/win32port/win32helpers",
     "//third_party/libwebsockets/include",
+    "//third_party/libwebsockets/lib/plat/unix",
   ]
   if (platform == "mingw_x86_64") {
     include_dirs += [ "//third_party/libwebsockets/lib/plat/windows" ]
