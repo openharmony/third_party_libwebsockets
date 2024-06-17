@@ -305,7 +305,7 @@ config("websockets_public_config") {
   if (platform == "mingw_x86_64") {
     include_dirs += [ "//third_party/libwebsockets/lib/plat/windows" ]
   } else if (platform == "mac_arm64" || platform == "mac_x64" ||
-             platform == "linux_x64") {
+             platform == "linux_x64" || platform == "linux_arm64") {
     include_dirs += [ "//third_party/libwebsockets/lib/plat/unix" ]
   }
   cflags = [ "-Wno-error=#warnings" ]
@@ -378,7 +378,7 @@ ohos_static_library("websockets_static") {
       "//third_party/libwebsockets/lib/plat/windows/windows-sockets.c",
     ]
   } else if (platform == "mac_arm64" || platform == "mac_x64" ||
-             platform == "linux_x64") {
+             platform == "linux_x64" || platform == "linux_arm64") {
     defines = [ "LWS_HAVE_SYS_RESOURCE_H" ]
     sources += [
       "//third_party/libwebsockets/lib/plat/unix/unix-caps.c",
