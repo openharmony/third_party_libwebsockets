@@ -19,10 +19,9 @@
     "rom": "319KB",
     "ram": "13865KB",
     "deps": {
-      "components": [],
+      "components": [ "zlib" ],
       "third_party": [
-        "openssl",
-        "zlib"
+        "openssl"
       ]
     },
     "build": {
