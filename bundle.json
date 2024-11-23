@@ -26,7 +26,47 @@
     },
     "build": {
       "sub_component": [],
-      "inner_kits": [],
+      "inner_kits": [
+        {
+          "name":"//third_party/libwebsockets:websockets",
+          "header":{
+              "header_files": [],
+              "header_base": [
+                "//third_party/libwebsockets/plugins",
+                "//third_party/libwebsockets/lib/core",
+                "//third_party/libwebsockets/lib/core-net",
+                "//third_party/libwebsockets/lib/event-libs",
+                "//third_party/libwebsockets/lib/abstract",
+                "//third_party/libwebsockets/lib/tls",
+                "//third_party/libwebsockets/lib/roles",
+                "//third_party/libwebsockets/lib/event-libs/libuv",
+                "//third_party/libwebsockets/lib/event-libs/poll",
+                "//third_party/libwebsockets/lib/event-libs/libevent",
+                "//third_party/libwebsockets/lib/event-libs/glib",
+                "//third_party/libwebsockets/lib/event-libs/libev",
+                "//third_party/libwebsockets/lib/jose/jwe",
+                "//third_party/libwebsockets/lib/jose/jws",
+                "//third_party/libwebsockets/lib/jose",
+                "//third_party/libwebsockets/lib/misc",
+                "//third_party/libwebsockets/lib/roles/http",
+                "//third_party/libwebsockets/lib/roles/http/compression",
+                "//third_party/libwebsockets/lib/roles/h1",
+                "//third_party/libwebsockets/lib/roles/h2",
+                "//third_party/libwebsockets/lib/roles/ws",
+                "//third_party/libwebsockets/lib/roles/cgi",
+                "//third_party/libwebsockets/lib/roles/dbus",
+                "//third_party/libwebsockets/lib/roles/raw-proxy",
+                "//third_party/libwebsockets/lib/abstract",
+                "//third_party/libwebsockets/lib/system/async-dns",
+                "//third_party/libwebsockets/lib/roles/mqtt",
+                "//third_party/libwebsockets/lib/system/metrics",
+                "//third_party/libwebsockets/lib",
+                "//third_party/libwebsockets/win32port/win32helpers",
+                "//third_party/libwebsockets/include"
+              ]
+          }
+        }
+      ],
       "test": []
     }
   }
