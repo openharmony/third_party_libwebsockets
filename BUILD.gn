@@ -249,6 +249,7 @@ ohos_static_library("websockets") {
     "//third_party/openssl:libssl_shared",
   ]
   external_deps = [ "zlib:libz" ]
+  public_configs = [ ":websockets_public_config" ]
 }
 
 config("websocket_config") {
