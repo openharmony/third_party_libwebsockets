@@ -17,6 +17,5 @@ set -e
 
 cd $1
 rm -f lib/core-net/vhost_ios.c
-cp lib/core-net/vhost.c lib/core-net/vhost_ios
-.c
+cp lib/core-net/vhost.c lib/core-net/vhost_ios.c
 git apply for_ios.patch
