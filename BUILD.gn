@@ -22,8 +22,7 @@ if (target_os == "ios") {
 
 ohos_static_library("websockets") {
   sources = [
-    "//third_party/libwebsockets/lib/core-net/adopt.c",
-    
+    "//third_party/libwebsockets/lib/core-net/adopt.c",  
     "//third_party/libwebsockets/lib/core-net/client/client.c",
     "//third_party/libwebsockets/lib/core-net/client/conmon.c",
     "//third_party/libwebsockets/lib/core-net/client/connect.c",
@@ -248,8 +247,8 @@ ohos_static_library("websockets") {
   deps = [
     "//third_party/openssl:libcrypto_shared",
     "//third_party/openssl:libssl_shared",
-    "//third_party/zlib:libz",
   ]
+  external_deps = [ "zlib:libz" ]
 }
 
 config("websocket_config") {
