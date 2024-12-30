@@ -209,12 +209,6 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/lib/roles/ws",
     "//third_party/libwebsockets/lib/roles/ws/ext",
     "//third_party/libwebsockets/lib/roles/raw-file",
-
-    #################################################
-    "//third_party/openssl/include/openssl",
-    "//third_party/openssl/crypto/evp",
-    "//third_party/glib/glib",
-    "//third_party/glib",
   ]
 
   if (target_os == "ios") {
@@ -244,11 +238,12 @@ ohos_static_library("websockets") {
     "-pipe",
   ]
 
-  deps = [
-    "//third_party/openssl:libcrypto_shared",
-    "//third_party/openssl:libssl_shared",
+  external_deps = [
+    "glib:glib",
+    "openssl:libcrypto_shared",
+    "openssl:libssl_shared",
+    "zlib:libz",
   ]
-  external_deps = [ "zlib:libz" ]
   public_configs = [ ":websockets_public_config" ]
 }
 
