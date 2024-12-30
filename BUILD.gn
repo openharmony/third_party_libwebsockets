@@ -15,14 +15,9 @@ import("//build/ohos.gni")
 
 platform = "${current_os}_${current_cpu}"
 
-if (target_os == "ios") {
-  libwebsockets_path = rebase_path("//third_party/libwebsockets")
-  exec_script("for_ios.sh", [ "$libwebsockets_path" ])
-}
-
 ohos_static_library("websockets") {
   sources = [
-    "//third_party/libwebsockets/lib/core-net/adopt.c",  
+    "//third_party/libwebsockets/lib/core-net/adopt.c",
     "//third_party/libwebsockets/lib/core-net/client/client.c",
     "//third_party/libwebsockets/lib/core-net/client/conmon.c",
     "//third_party/libwebsockets/lib/core-net/client/connect.c",
@@ -35,9 +30,11 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/lib/core-net/network.c",
     "//third_party/libwebsockets/lib/core-net/output.c",
     "//third_party/libwebsockets/lib/core-net/pollfd.c",
+    "//third_party/libwebsockets/lib/core-net/route.c",
     "//third_party/libwebsockets/lib/core-net/service.c",
     "//third_party/libwebsockets/lib/core-net/sorted-usec-list.c",
     "//third_party/libwebsockets/lib/core-net/state.c",
+    "//third_party/libwebsockets/lib/core-net/vhost.c",
     "//third_party/libwebsockets/lib/core-net/wsi-timeout.c",
     "//third_party/libwebsockets/lib/core-net/wsi.c",
     "//third_party/libwebsockets/lib/core/alloc.c",
@@ -81,6 +78,7 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/lib/roles/http/server/lws-spa.c",
     "//third_party/libwebsockets/lib/roles/http/server/server.c",
     "//third_party/libwebsockets/lib/roles/listen/ops-listen.c",
+    "//third_party/libwebsockets/lib/roles/netlink/ops-netlink.c",
     "//third_party/libwebsockets/lib/roles/pipe/ops-pipe.c",
     "//third_party/libwebsockets/lib/roles/raw-file/ops-raw-file.c",
     "//third_party/libwebsockets/lib/roles/raw-skt/ops-raw-skt.c",
@@ -105,13 +103,6 @@ ohos_static_library("websockets") {
 
   part_name = "libwebsockets"
   subsystem_name = "thirdparty"
-
-  if (target_os != "ios") {
-    sources += [
-      "//third_party/libwebsockets/lib/core-net/route.c",
-      "//third_party/libwebsockets/lib/roles/netlink/ops-netlink.c",
-    ]
-  }
 
   include_dirs = [
     "//third_party/libwebsockets/include",
@@ -217,20 +208,10 @@ ohos_static_library("websockets") {
     "//third_party/glib",
   ]
 
-  if (target_os == "ios") {
-    sources += [ "//third_party/libwebsockets/lib/core-net/vhost_ios.c" ]
-  } else {
-    sources += [ "//third_party/libwebsockets/lib/core-net/vhost.c" ]
-  }
-
   defines = [
     "OHOS_LIBWEBSOCKETS=1",
     "OPENSSL_SUPPRESS_DEPRECATED",
   ]
-  if (target_os == "ios") {
-    defines += [ "LWS_DETECTED_PLAT_IOS=1" ]
-    defines += [ "CROSS_PLATFORM_IOS_LIBWEBSOCKETS=1" ]
-  }
 
   cflags = [
     "-fPIC",
@@ -305,7 +286,7 @@ config("websockets_public_config") {
   if (platform == "mingw_x86_64") {
     include_dirs += [ "//third_party/libwebsockets/lib/plat/windows" ]
   } else if (platform == "mac_arm64" || platform == "mac_x64" ||
-             platform == "linux_x64" || platform == "linux_arm64") {
+             platform == "linux_x64") {
     include_dirs += [ "//third_party/libwebsockets/lib/plat/unix" ]
   }
   cflags = [ "-Wno-error=#warnings" ]
@@ -378,7 +359,7 @@ ohos_static_library("websockets_static") {
       "//third_party/libwebsockets/lib/plat/windows/windows-sockets.c",
     ]
   } else if (platform == "mac_arm64" || platform == "mac_x64" ||
-             platform == "linux_x64" || platform == "linux_arm64") {
+             platform == "linux_x64") {
     defines = [ "LWS_HAVE_SYS_RESOURCE_H" ]
     sources += [
       "//third_party/libwebsockets/lib/plat/unix/unix-caps.c",
