@@ -24,7 +24,7 @@
         "openssl"
       ]
     },
-    "build": { 
+    "build": {
       "sub_component": [],
       "inner_kits": [],
       "test": []
