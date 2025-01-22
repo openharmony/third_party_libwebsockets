@@ -154,7 +154,7 @@ lws_client_dns_retry_timeout(lws_sorted_usec_list_t *sul)
 	 */
 
 	lwsl_wsi_info(wsi, "dns retry");
-	lws_client_connect_2_dnsreq(wsi);
+	(void)lws_client_connect_2_dnsreq(wsi);
 }
 
 /*
