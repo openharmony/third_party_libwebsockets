@@ -2,7 +2,7 @@
   "name": "@ohos/libwebsockets",
   "description": "Libwebsockets is a simple-to-use, MIT-license, pure C library providing client and server for http/1, http/2, websockets, MQTT and other protocols in a security-minded, lightweight, configurable, scalable and flexible way.",
   "version": "4.3.3",
-  "license": "Apache V2.0",
+  "license": "Apache-2.0",
   "publishAs": "code-segment",
   "segment": {
     "destPath": "third_party/libwebsockets"
