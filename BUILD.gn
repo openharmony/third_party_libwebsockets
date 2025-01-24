@@ -211,11 +211,20 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/lib/roles/raw-file",
   ]
 
+  deps = []
+
   if (is_arkui_x) {
-    deps = [
-      "//third_party/openssl:libcrypto_shared",
-      "//third_party/openssl:libssl_shared",
-    ]
+    if (target_os == "ios") {
+      deps += [
+        "//third_party/openssl:libcrypto_static",
+        "//third_party/openssl:libssl_static",
+      ]
+    } else {
+      deps += [
+        "//third_party/openssl:libcrypto_shared",
+        "//third_party/openssl:libssl_shared",
+      ]
+    }
     include_dirs += [
       "//third_party/openssl/include/openssl",
       "//third_party/openssl/crypto/evp",
