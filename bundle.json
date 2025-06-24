@@ -20,7 +20,6 @@
     "ram": "13865KB",
     "deps": {
       "components": [
-        "glib",
         "openssl",
         "zlib"
       ],
@@ -44,7 +43,6 @@
                 "//third_party/libwebsockets/lib/event-libs/libuv",
                 "//third_party/libwebsockets/lib/event-libs/poll",
                 "//third_party/libwebsockets/lib/event-libs/libevent",
-                "//third_party/libwebsockets/lib/event-libs/glib",
                 "//third_party/libwebsockets/lib/event-libs/libev",
                 "//third_party/libwebsockets/lib/jose/jwe",
                 "//third_party/libwebsockets/lib/jose/jws",
