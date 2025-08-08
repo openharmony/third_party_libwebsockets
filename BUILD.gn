@@ -137,7 +137,6 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/lib/event-libs/libev",
     "//third_party/libwebsockets/lib/event-libs/sdevent",
     "//third_party/libwebsockets/lib/event-libs/poll",
-    "//third_party/libwebsockets/lib/event-libs/glib",
     "//third_party/libwebsockets/lib/cose",
     "//third_party/libwebsockets/lib/core-net",
     "//third_party/libwebsockets/lib/core-net/client",
@@ -228,8 +227,6 @@ ohos_static_library("websockets") {
     include_dirs += [
       "//third_party/openssl/include/openssl",
       "//third_party/openssl/crypto/evp",
-      "//third_party/glib/glib",
-      "//third_party/glib",
     ]
   }
 
@@ -261,7 +258,6 @@ ohos_static_library("websockets") {
   ]
 
   external_deps = [
-    "glib:glib",
     "openssl:libcrypto_shared",
     "openssl:libssl_shared",
     "zlib:libz",
@@ -298,7 +294,6 @@ config("websockets_public_config") {
     "//third_party/libwebsockets/lib/event-libs/libuv",
     "//third_party/libwebsockets/lib/event-libs/poll",
     "//third_party/libwebsockets/lib/event-libs/libevent",
-    "//third_party/libwebsockets/lib/event-libs/glib",
     "//third_party/libwebsockets/lib/event-libs/libev",
     "//third_party/libwebsockets/lib/jose/jwe",
     "//third_party/libwebsockets/lib/jose/jws",
