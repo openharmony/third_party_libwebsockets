@@ -15,11 +15,6 @@ import("//build/ohos.gni")
 
 platform = "${current_os}_${current_cpu}"
 
-if (target_os == "ios") {
-  libwebsockets_path = rebase_path("//third_party/libwebsockets")
-  exec_script("for_ios.sh", [ "$libwebsockets_path" ])
-}
-
 ohos_static_library("websockets") {
   sources = [
     "//third_party/libwebsockets/lib/core-net/adopt.c",
@@ -38,6 +33,7 @@ ohos_static_library("websockets") {
     "//third_party/libwebsockets/lib/core-net/service.c",
     "//third_party/libwebsockets/lib/core-net/sorted-usec-list.c",
     "//third_party/libwebsockets/lib/core-net/state.c",
+    "//third_party/libwebsockets/lib/core-net/vhost.c",
     "//third_party/libwebsockets/lib/core-net/wsi-timeout.c",
     "//third_party/libwebsockets/lib/core-net/wsi.c",
     "//third_party/libwebsockets/lib/core/alloc.c",
@@ -228,12 +224,6 @@ ohos_static_library("websockets") {
       "//third_party/openssl/include/openssl",
       "//third_party/openssl/crypto/evp",
     ]
-  }
-
-  if (target_os == "ios") {
-    sources += [ "//third_party/libwebsockets/lib/core-net/vhost_ios.c" ]
-  } else {
-    sources += [ "//third_party/libwebsockets/lib/core-net/vhost.c" ]
   }
 
   defines = [
