@@ -381,7 +381,6 @@ __lws_close_free_wsi(struct lws *wsi, enum lws_close_status reason,
 	pt = &context->pt[(int)wsi->tsi];
 
 	if (pt->pipe_wsi == wsi) {
-		lws_plat_pipe_close(pt->pipe_wsi);
 		pt->pipe_wsi = NULL;
 	}
 
