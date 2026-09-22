@@ -1807,7 +1807,12 @@ decim(char *r, uint64_t v, char chars, char leading)
 
 	/* n is how many chars needed */
 
-	while (n--) {
+	/*
+	 * q is 10^(n-1) or larger here, so it cannot reach 0 before we have
+	 * emitted n digits... make that visible to the compiler / analyzers
+	 */
+
+	while (n-- && q) {
 		*r++ = (char)('0' + (char)((v / q) % 10));
 		q = q / 10;
 	}
