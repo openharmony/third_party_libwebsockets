@@ -41,12 +41,37 @@ lws_tls_openssl_asn1time_to_unix(ASN1_TIME *as)
 
 	const char *p = (const char *)as->data;
 	struct tm t;
+	size_t pl, n;
 
 	/* [YY]YYMMDDHHMMSSZ */
 
+	if (!p)
+		return (time_t)-1;
+
+	pl = strlen(p);
+
+	/*
+	 * The X509 notBefore / notAfter are decoded as an ASN1 MSTRING, which
+	 * only checks the tag and copies the content octets verbatim: neither
+	 * the length nor the digits are validated by openssl on this path.  So
+	 * a peer cert can carry any length here, and we must confirm the
+	 * RFC5280 UTCTime / GeneralizedTime shape ourselves before indexing
+	 * into it
+	 */
+
+	if (pl != 13 && pl != 15)
+		return (time_t)-1;
+
+	if (p[pl - 1] != 'Z')
+		return (time_t)-1;
+
+	for (n = 0; n < pl - 1; n++)
+		if (p[n] < '0' || p[n] > '9')
+			return (time_t)-1;
+
 	memset(&t, 0, sizeof(t));
 
-	if (strlen(p) == 13) {
+	if (pl == 13) {
 		t.tm_year = (dec(p[0]) * 10) + dec(p[1]);
 		if (t.tm_year < 50) /* RFC5280: 13 char dates will break after 2049 */
 			t.tm_year += 100; /* struct tm year is -1900, this gives 2000..2049 */
@@ -58,7 +83,7 @@ lws_tls_openssl_asn1time_to_unix(ASN1_TIME *as)
 	}
 	t.tm_mon = (dec(p[0]) * 10) + dec(p[1]) - 1;
 	p += 2;
-	t.tm_mday = (dec(p[0]) * 10) + dec(p[1]) - 1;
+	t.tm_mday = (dec(p[0]) * 10) + dec(p[1]);
 	p += 2;
 	t.tm_hour = (dec(p[0]) * 10) + dec(p[1]);
 	p += 2;
@@ -179,8 +204,7 @@ lws_tls_openssl_cert_info(X509 *x509, enum lws_tls_cert_info type,
 		    !ptmp || lws_ptr_diff(ptmp, tmp) != (int)klen) {
 			lwsl_info("%s: cert public key extraction failed\n",
 				  __func__);
-			if (ptmp)
-				OPENSSL_free(tmp);
+			OPENSSL_free(tmp);
 
 			return -1;
 		}
@@ -223,15 +247,23 @@ lws_tls_openssl_cert_info(X509 *x509, enum lws_tls_cert_info type,
 #else
 		akid = (AUTHORITY_KEYID *)wolfSSL_X509V3_EXT_d2i(ext);
 #endif
-		if (!akid || !akid->keyid)
+		if (!akid)
 			return 1;
+
+		if (!akid->keyid) {
+			AUTHORITY_KEYID_free(akid);
+			return 1;
+		}
+
 		val = akid->keyid;
 		dp = (const unsigned char *)val->data;
 		xlen = val->length;
 
 		buf->ns.len = (int)xlen;
-		if (len < (size_t)buf->ns.len)
+		if (len < (size_t)buf->ns.len) {
+			AUTHORITY_KEYID_free(akid);
 			return -1;
+		}
 
 		memcpy(buf->ns.name, dp, (size_t)buf->ns.len);
 
@@ -252,8 +284,13 @@ lws_tls_openssl_cert_info(X509 *x509, enum lws_tls_cert_info type,
 #else
 		akid = (AUTHORITY_KEYID *)wolfSSL_X509V3_EXT_d2i(ext);
 #endif
-		if (!akid || !akid->issuer)
+		if (!akid)
 			return 1;
+
+		if (!akid->issuer) {
+			AUTHORITY_KEYID_free(akid);
+			return 1;
+		}
 
 #if defined(LWS_HAVE_OPENSSL_STACK)
 		{
@@ -287,6 +324,8 @@ lws_tls_openssl_cert_info(X509 *x509, enum lws_tls_cert_info type,
 		        	    r = 0;
 		            }
 		        }
+
+		        sk_CONF_VALUE_pop_free(cv, X509V3_conf_free);
 		}
 
 bail_ak:
@@ -304,8 +343,13 @@ bail_ak:
 		if (!ext)
 			return 1;
 		akid = (AUTHORITY_KEYID *)X509V3_EXT_d2i(ext);
-		if (!akid || !akid->serial)
+		if (!akid)
 			return 1;
+
+		if (!akid->serial) {
+			AUTHORITY_KEYID_free(akid);
+			return 1;
+		}
 
 #if 0
 		// need to handle blobs, and ASN1_INTEGER_get_uint64 not
@@ -318,6 +362,8 @@ bail_ak:
 					(unsigned long long)res);
 		}
 #endif
+		/* the extension object is ours to free either way */
+		AUTHORITY_KEYID_free(akid);
 		break;
 
 	case LWS_TLS_CERT_INFO_SUBJECT_KEY_ID:
@@ -809,7 +855,8 @@ lws_x509_jwk_privkey_pem(struct lws_context *cx, struct lws_jwk *jwk,
 		/* accept p and q from the PEM privkey into the JWK */
 
 		jwk->e[LWS_GENCRYPTO_RSA_KEYEL_P].len = (unsigned int)BN_num_bytes(dummy[4]);
-		jwk->e[LWS_GENCRYPTO_RSA_KEYEL_P].buf = lws_malloc((unsigned int)n, "privjk");
+		jwk->e[LWS_GENCRYPTO_RSA_KEYEL_P].buf =
+			lws_malloc(jwk->e[LWS_GENCRYPTO_RSA_KEYEL_P].len, "privjk");
 		if (!jwk->e[LWS_GENCRYPTO_RSA_KEYEL_P].buf) {
 			lws_free_set_NULL(jwk->e[LWS_GENCRYPTO_RSA_KEYEL_D].buf);
 			goto bail1;
@@ -817,7 +864,8 @@ lws_x509_jwk_privkey_pem(struct lws_context *cx, struct lws_jwk *jwk,
 		BN_bn2bin(dummy[4], jwk->e[LWS_GENCRYPTO_RSA_KEYEL_P].buf);
 
 		jwk->e[LWS_GENCRYPTO_RSA_KEYEL_Q].len = (unsigned int)BN_num_bytes(dummy[5]);
-		jwk->e[LWS_GENCRYPTO_RSA_KEYEL_Q].buf = lws_malloc((unsigned int)n, "privjk");
+		jwk->e[LWS_GENCRYPTO_RSA_KEYEL_Q].buf =
+			lws_malloc(jwk->e[LWS_GENCRYPTO_RSA_KEYEL_Q].len, "privjk");
 		if (!jwk->e[LWS_GENCRYPTO_RSA_KEYEL_Q].buf) {
 			lws_free_set_NULL(jwk->e[LWS_GENCRYPTO_RSA_KEYEL_D].buf);
 			lws_free_set_NULL(jwk->e[LWS_GENCRYPTO_RSA_KEYEL_P].buf);
